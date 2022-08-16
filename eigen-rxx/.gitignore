@@ -1,0 +1,6 @@
+/target
+/Cargo.lock
+__pycache__/
+/staging
+/tmp
+/src/gen/

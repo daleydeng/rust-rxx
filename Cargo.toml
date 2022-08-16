@@ -1,0 +1,2 @@
+[workspace]
+members = ["rxx-build", "rxx", 'eigen-rxx-build', 'eigen-rxx', "sophus-rxx-build", "sophus-rxx"]
