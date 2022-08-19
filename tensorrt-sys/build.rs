@@ -42,14 +42,25 @@ fn main() -> Result<()> {
         .clang_args(&[&format!("-I{}", inc_dir.to_str().unwrap()), "-x", "c++"])
 	;
 
-    for f in ["NvInfer.h", "NvInferRuntime.h", "NvInferRuntimeCommon.h"] {
+    for f in [
+	"NvInferVersion.h",
+	"NvInferLegacyDims.h"
+    ] {
+	builder = builder.allowlist_file(inc_dir.join(f).to_str().unwrap());
+    }
+
+    for f in ["NvInfer.h", "NvInferRuntime.h", "NvInferRuntimeCommon.h", "NvOnnxParser.h"] {
 	for n in extract_enum_names(inc_dir.join(f).to_str().unwrap())? {
 	    builder = builder.allowlist_type(format!("nvinfer1::{n}"));
 	}
     }
 
-    builder = builder.allowlist_file(inc_dir.join("NvInferVersion.h").to_str().unwrap());
-    builder = builder.allowlist_file(inc_dir.join("NvInferLegacyDims.h").to_str().unwrap());
+    for t in [
+	"nvinfer1::ILogger",
+	"nvinfer1::IBuilder"
+    ] {
+	builder = builder.allowlist_type(t);
+    }
 
     let bindings = builder.generate()?;
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
