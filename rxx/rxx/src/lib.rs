@@ -25,7 +25,6 @@ genrs_unique_ptr!(rxx_unique_string, crate::CxxString);
 genrs_shared_ptr!(rxx_shared_string, crate::CxxString);
 genrs_weak_ptr!(rxx_weak_string, crate::CxxString);
 
-
 #[cfg(test)]
 mod tests {
     use core::ffi::c_void;

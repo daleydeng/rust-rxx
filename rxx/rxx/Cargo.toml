@@ -1,3 +1,5 @@
+cargo-features = ["workspace-inheritance"]
+
 [package]
 name = "rxx"
 version = "0.1.0"
@@ -7,9 +9,6 @@ edition = "2021"
 paste = "1.0"
 
 [build-dependencies]
-rxx-build = { path = "../rxx-build"}
+rxx-build.workspace = true
 cc = "1.0.73"
 anyhow = "1.0.58"
-
-[features]
-test = []

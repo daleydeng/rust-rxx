@@ -1,0 +1,16 @@
+cargo-features = ["workspace-inheritance"]
+
+[package]
+name = "sophus_rxx"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rxx.workspace = true
+eigen-rxx.workspace = true
+num = "0.4"
+
+[build-dependencies]
+sophus-rxx-build.workspace = true
+cc = "1.0"
+anyhow = "1.0"
