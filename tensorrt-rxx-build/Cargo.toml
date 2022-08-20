@@ -1,5 +1,5 @@
 [package]
-name = "eigen-rxx-build"
+name = "tensorrt-rxx-build"
 version = "0.1.0"
 edition = "2021"
 

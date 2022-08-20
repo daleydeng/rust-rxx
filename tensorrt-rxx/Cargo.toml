@@ -1,0 +1,16 @@
+[package]
+name = "tensorrt-rxx"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rxx = { path = "../rxx" }
+tensorrt-sys = { path = "../tensorrt-sys" }
+libc = "0.2"
+
+[build-dependencies]
+tensorrt-rxx-build = { path = "../tensorrt-rxx-build" }
+cc = "1.0"
+anyhow = "1.0"

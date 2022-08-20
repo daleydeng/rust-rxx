@@ -1,3 +1,4 @@
+#![feature(default_free_fn)]
 use std::path::{Path, PathBuf};
 use std::io::Write;
 use std::fs;
@@ -6,6 +7,7 @@ use std::collections::HashSet;
 use anyhow::Result;
 use handlebars::Handlebars;
 use serde_json::json;
+
 pub mod genc;
 pub use genc::*;
 
@@ -14,71 +16,74 @@ const NAME: &str = "rxx";
 const C_HDR: &str = include_str!("../include/wrapper.hh");
 const C_SRC: &str = include_str!("../csrc/wrapper.cc");
 
+pub fn dump_file_once(fname: &Path, source: &str, once: &Once) {
+    let inc_dir = fname.parent().unwrap();
+    fs::create_dir_all(&inc_dir).unwrap();
+    once.call_once(|| {
+	let mut file = fs::File::create(&fname).unwrap();
+	file.write_all(source.as_bytes()).unwrap();
+    });
+}
+
 pub fn dump_headers_rxx(inc_dir: &Path) -> Result<HashSet<PathBuf>> {
-    static START: Once = Once::new();
+    static ONCE: Once = Once::new();
 
     let inc_dir = inc_dir.join(NAME);
-    fs::create_dir_all(&inc_dir)?;
 
     let wrapper_f = inc_dir.join("wrapper.hh");
-    START.call_once(|| {
-	let mut file = fs::File::create(&wrapper_f).unwrap();
-	file.write_all(C_HDR.as_bytes()).unwrap();
-    });
+    dump_file_once(&wrapper_f, C_HDR, &ONCE);
     Ok(HashSet::from([inc_dir]))
 }
 
-pub fn genc_file_rxx(gen_types: &[&str]) -> String {
+pub fn render_c_template(tpl: &str, items: &[&str]) -> Result<String> {
+    let hb = Handlebars::new();
+
+    Ok(hb.render_template(
+        tpl,
+        &json!({
+            "items": items,
+        }),
+    )?)
+}
+
+pub fn genc_file_rxx(items: &[&str]) -> Result<String> {
     let tpl = r#"
 #include <rxx/wrapper.hh>
 
-{{#each code}}
+{{#each items}}
 {{{this}}}
 {{/each}}
 "#
     .trim_start();
-
-    let hb = Handlebars::new();
-
-    hb.render_template(
-        tpl,
-        &json!({
-            "code": gen_types,
-        }),
-    )
-    .unwrap()
+    render_c_template(tpl, items)
 }
 
 pub fn dump_sources_rxx(src_dir: &Path) -> Result<HashSet<PathBuf>> {
-    static START: Once = Once::new();
+    static ONCE_SRC: Once = Once::new();
+    static ONCE_FFI: Once = Once::new();
 
     let src_dir = src_dir.join(NAME);
-    fs::create_dir_all(&src_dir)?;
-
     let wrapper_f = src_dir.join("wrapper.cc");
+    dump_file_once(&wrapper_f, C_SRC, &ONCE_SRC);
+
     let ffi_f = src_dir.join("ffi.cc");
+    let ffi_code = genc_file_rxx(&[
+        &genc_unique_ptr("rxx_unique_string", "std::unique_ptr<std::string>"),
+        &genc_shared_ptr("rxx_shared_string", "std::shared_ptr<std::string>"),
+        &genc_weak_ptr(
+            "rxx_weak_string",
+            "std::weak_ptr<std::string>",
+            "std::shared_ptr<std::string>",
+        ),
+    ]).unwrap();
 
-    START.call_once(|| {
-	let mut file = fs::File::create(&wrapper_f).unwrap();
-	file.write_all(C_SRC.as_bytes()).unwrap();
-
-	let mut file = fs::File::create(&ffi_f).unwrap();
-	file.write_all(genc_file_rxx(&[
-            &genc_unique_ptr("rxx_unique_string", "std::unique_ptr<std::string>"),
-            &genc_shared_ptr("rxx_shared_string", "std::shared_ptr<std::string>"),
-            &genc_weak_ptr(
-                "rxx_weak_string",
-                "std::weak_ptr<std::string>",
-                "std::shared_ptr<std::string>",
-            ),
-	]).as_bytes()).unwrap();
-    });
-
+    dump_file_once(&ffi_f, &ffi_code, &ONCE_FFI);
     Ok(HashSet::from([wrapper_f, ffi_f]))
 }
 
 #[cfg(test)]
 mod tests {
+    use std::default::default;
     use super::*;
 
     #[test]
@@ -89,7 +94,7 @@ mod tests {
                 c_fn: "MapMut_fixed_new<Matrix3d, double>",
                 ret_type: ReturnType::Object("Eigen::Map<Matrix3d>"),
                 args: &[("double *", "data")],
-                ..FnSig::default()
+                ..default()
             },
         );
 
@@ -109,7 +114,7 @@ extern "C" void MapMut_Matrix3d_new(double * data, Eigen::Map<Matrix3d> *__ret) 
             FnSig {
                 c_fn: "Matrix3d_print",
                 args: &[("Matrix3d const &", "self")],
-                ..FnSig::default()
+                ..default()
             },
         );
 
@@ -203,7 +208,7 @@ extern "C" void rxx_vector_string_pop_back(std::vector<std::string> &self, std::
 }
 "#.trim_start());
 
-	let s = genc_get_val("get_global", "int", "test");
+	let s = genc_get_val("get_global", ReturnType::Atomic("int"), "test");
 	assert_eq!(s, r#"
 extern "C" int get_global() noexcept {
     return test;

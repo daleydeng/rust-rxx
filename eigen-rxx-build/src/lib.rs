@@ -1,12 +1,8 @@
 use std::collections::HashSet;
-use std::fs;
-use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::Once;
 use anyhow::{bail, Result};
-use handlebars::Handlebars;
 use rxx_build::*;
-use serde_json::json;
 
 pub fn genc_file_eigen(fns: &[&str]) -> Result<String> {
     if fns.is_empty() {
@@ -18,20 +14,13 @@ pub fn genc_file_eigen(fns: &[&str]) -> Result<String> {
 
 using namespace eigen_rxx;
 
-{{#each fns}}
+{{#each items}}
 {{{this}}}
 {{/each}}
 "#
     .trim_start();
 
-    let hb = Handlebars::new();
-
-    Ok(hb.render_template(
-        tpl,
-        &json!({
-        "fns": fns,
-        }),
-    )?)
+    render_c_template(tpl, fns)
 }
 
 #[allow(non_snake_case)]
@@ -196,36 +185,28 @@ const C_HDR: &str = include_str!("../include/wrapper.hh");
 const NAME: &str = "eigen_rxx";
 
 pub fn dump_headers_eigen(inc_dir: &Path) -> Result<HashSet<PathBuf>> {
-    static START: Once = Once::new();
+    static ONCE: Once = Once::new();
 
     let mut out = dump_headers_rxx(inc_dir)?;
-
     let inc_dir = inc_dir.join(NAME);
-    fs::create_dir_all(&inc_dir)?;
-
     let wrapper_f = inc_dir.join("wrapper.hh");
-    START.call_once(|| {
-	let mut file = fs::File::create(&wrapper_f).unwrap();
-	file.write_all(C_HDR.as_bytes()).unwrap();
-    });
+    dump_file_once(&wrapper_f, C_HDR, &ONCE);
     out.insert(inc_dir);
     Ok(out)
 }
 
 pub fn dump_sources_eigen(src_dir: &Path) -> Result<HashSet<PathBuf>> {
-    static START: Once = Once::new();
+    static ONCE: Once = Once::new();
     let mut out = dump_sources_rxx(src_dir)?;
 
     let src_dir = src_dir.join(NAME);
-    fs::create_dir_all(&src_dir)?;
-
     let ffi_f = src_dir.join("ffi.cc");
-    START.call_once(|| {
-        let mut file = fs::File::create(&ffi_f).unwrap();
-        let fn_codes = genc_fns();
-        let fn_codes: Vec<&str> = fn_codes.iter().map(AsRef::as_ref).collect();
-        file.write_all(genc_file_eigen(&fn_codes).unwrap().as_bytes()).unwrap();
-    });
+
+    let fn_codes = genc_fns();
+    let fn_codes: Vec<&str> = fn_codes.iter().map(AsRef::as_ref).collect();
+    let ffi_code = genc_file_eigen(&fn_codes).unwrap();
+    dump_file_once(&ffi_f, &ffi_code, &ONCE);
+
     out.insert(ffi_f);
     Ok(out)
 }

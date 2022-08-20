@@ -1,2 +1,2 @@
 [workspace]
-members = ["rxx-build", "rxx", 'eigen-rxx-build', 'eigen-rxx', "sophus-rxx-build", "sophus-rxx", "tensorrt-sys"]
+members = ["rxx-build", "rxx", 'eigen-rxx-build', 'eigen-rxx', "sophus-rxx-build", "sophus-rxx", "tensorrt-sys", "tensorrt-rxx-build", "tensorrt-rxx"]

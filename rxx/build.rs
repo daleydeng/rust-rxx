@@ -1,9 +1,11 @@
-use anyhow::Result;
-use rxx_build::{self, *};
+#![feature(default_free_fn)]
 use std::io::prelude::*;
 use std::path::PathBuf;
 use std::collections::HashSet;
 use std::{env, fs, fs::File};
+use std::default::default;
+use anyhow::Result;
+use rxx_build::{self, *};
 
 fn main() -> Result<()> {
     let prefix = PathBuf::from(env::var("CONDA_PREFIX")?);
@@ -17,7 +19,8 @@ fn main() -> Result<()> {
 
     let genc_file_test;
 
-    if cfg!(feature = "test") {
+    let profile = env::var("PROFILE").unwrap();
+    if profile == "debug" {
         inc_dirs.insert("csrc".into());
         src_files.insert("csrc/test.cc".into());
 
@@ -39,7 +42,7 @@ fn main() -> Result<()> {
                         c_fn: "dummy_cpp_new_vector_i64",
                         ret_type: ReturnType::Object("std::vector<int64_t>"),
                         args: &[("int", "a")],
-                        ..FnSig::default()
+                        ..default()
                     },
                 ),
                 &genc_fn(
@@ -50,7 +53,7 @@ fn main() -> Result<()> {
 			    ("std::vector<int64_t>&", "val"),
 			    ("int", "n")
 			],
-                        ..FnSig::default()
+                        ..default()
                     },
                 ),
                 &genc_fn(
@@ -59,7 +62,7 @@ fn main() -> Result<()> {
                         c_fn: "dummy_cpp_addret_vector_i64",
                         ret_type: ReturnType::Atomic("int64_t"),
                         args: &[("std::vector<int64_t>&", "val"), ("int", "n")],
-                        ..FnSig::default()
+                        ..default()
                     },
                 ),
                 &genc_fn(
@@ -68,7 +71,7 @@ fn main() -> Result<()> {
                         c_fn: "dummy_cpp_get_vector_i64",
                         ret_type: ReturnType::Object("int64_t"),
                         args: &[("std::vector<int64_t>const&", "val")],
-                        ..FnSig::default()
+                        ..default()
                     },
                 ),
                 &genc_fn(
@@ -76,7 +79,7 @@ fn main() -> Result<()> {
                     FnSig {
                         c_fn: "dummy_cpp_getvoid_vector_i64",
                         args: &[("std::vector<int64_t>const&", "val"), ("int", "a")],
-                        ..FnSig::default()
+                        ..default()
                     },
                 ),
                 &genc_fn(
@@ -85,7 +88,7 @@ fn main() -> Result<()> {
                         c_fn: "dummy_cpp_getref_vector_i64",
                         ret_type: ReturnType::Atomic("int64_t const &"),
                         args: &[("std::vector<int64_t>const&", "val"), ("int", "idx")],
-                        ..FnSig::default()
+                        ..default()
                     },
                 ),
                 &genc_unique_ptr("rxx_unique_i64", "std::unique_ptr<int64_t>"),
@@ -103,7 +106,7 @@ fn main() -> Result<()> {
                         c_fn: "&$C::get",
                         ret_type: ReturnType::Atomic("int64_t"),
                         args: &[("size_t", "idx")],
-                        ..FnSig::default()
+                        ..default()
                     },
                 ),
                 &genc_fn(
@@ -123,11 +126,10 @@ fn main() -> Result<()> {
                         c_fn: "&$C::add",
                         is_mut: true,
                         args: &[("int64_t", "val")],
-                        ..FnSig::default()
+                        ..default()
                     },
                 ),
-            ])
-            .as_bytes(),
+            ]).unwrap().as_bytes(),
         )?;
 
         src_files.insert(genc_file_test);

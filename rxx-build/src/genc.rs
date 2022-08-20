@@ -285,6 +285,14 @@ pub fn genc_fn(link_name: &str, fn_sig: FnSig) -> String {
     }
 }
 
+pub fn genc_delete(link_name: &str, c_tp: &str) -> String {
+    format!(r#"
+extern "C" void {link_name}({c_tp} *self) noexcept {{
+    delete self;
+}}
+"#).trim_start().into()
+}
+
 pub fn genc_get_val<'a>(link_name: &str, ret_type: ReturnType<'a>, c_tp: &str) -> String {
     match ret_type {
 	ReturnType::Object(v) =>
