@@ -40,7 +40,7 @@ mod tests {
 
     rxx_macro::genrs_fn!(pub fn rxx_dummy_cpp_get_vector_i64(a: &CxxVector<i64>) -> i64 {});
     rxx_macro::genrs_fn!(pub fn rxx_dummy_cpp_getvoid_vector_i64(a: &CxxVector<i64>, i: i32) {});
-    genrs_fn!(pub fn rxx_dummy_cpp_getref_vector_i64<'a>(a: &'a CxxVector<i64>, i: i32) -> &'a i64, cret=atomic);
+    rxx_macro::genrs_fn!(#[ffi(atomic)] pub fn rxx_dummy_cpp_getref_vector_i64<'a>(a: &'a CxxVector<i64>, i: i32) -> &'a i64 {});
 
     genrs_fn!(CxxVector<i64>;; pub fn add(&mut self, a: i32), ln=rxx_dummy_cpp_add_vector_i64);
     genrs_fn!(CxxVector<i64>;; pub fn addret(&mut self, a: i32) -> i64, cret=atomic, ln=rxx_dummy_cpp_addret_vector_i64);

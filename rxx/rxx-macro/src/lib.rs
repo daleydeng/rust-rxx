@@ -16,8 +16,6 @@ fn parse_fn_item(item_fn: &syn::ItemFn) -> syn::Result<proc_macro2::TokenStream>
     let fn_sig = &item_fn.sig;
     let fn_name = &fn_sig.ident;
 
-    // dbg!(item_fn);
-
     let mut link_name = fn_name.clone();
     let mut ret_mode = "object";
 
@@ -82,6 +80,7 @@ fn parse_fn_item(item_fn: &syn::ItemFn) -> syn::Result<proc_macro2::TokenStream>
 	    c_call_inputs.push_punct(syn::Token![,](Span::call_site()));
 	}
     }
+    let fn_generics = &fn_sig.generics;
 
     let t = if unsafety.is_none() {
 	match ret_type {
@@ -90,7 +89,7 @@ fn parse_fn_item(item_fn: &syn::ItemFn) -> syn::Result<proc_macro2::TokenStream>
 		    #fn_vis #fn_sig {
 			extern "C" {
 			    #[link_name = stringify!(#link_name)]
-			    fn __func (#c_decl_inputs __ret: *mut #rt);
+			    fn __func #fn_generics (#c_decl_inputs __ret: *mut #rt);
 			}
 			unsafe {
 			    let mut __ret = std::mem::MaybeUninit::<#rt>::uninit();
@@ -106,7 +105,7 @@ fn parse_fn_item(item_fn: &syn::ItemFn) -> syn::Result<proc_macro2::TokenStream>
 		    #fn_vis #fn_sig {
 			extern "C" {
 			    #[link_name = stringify!(#link_name)]
-			    fn __func (#c_decl_inputs) -> #rt;
+			    fn __func #fn_generics (#c_decl_inputs) -> #rt;
 			}
 			unsafe {
 			    __func(#c_call_inputs)
@@ -119,7 +118,7 @@ fn parse_fn_item(item_fn: &syn::ItemFn) -> syn::Result<proc_macro2::TokenStream>
 		    #fn_vis #fn_sig {
 			extern "C" {
 			    #[link_name = stringify!(#link_name)]
-			    fn __func (#c_decl_inputs);
+			    fn __func #fn_generics (#c_decl_inputs);
 			}
 			unsafe {
 			    __func(#c_call_inputs)
