@@ -53,31 +53,8 @@ mod tests {
     genrs_weak_ptr!(rxx_weak_i64, i64);
     genrs_vector!(rxx_vector_i64, i64);
 
-    fn new_unique_i64(v: i64) -> UniquePtr<i64> {
-        extern "C" {
-            #[link_name = "rxx_dummy_new_unique_i64"]
-            fn __func(val: i64, out: *mut c_void);
-        }
-
-        let mut out = MaybeUninit::<UniquePtr<i64>>::uninit();
-        unsafe {
-            __func(v, out.as_mut_ptr() as *mut c_void);
-            out.assume_init()
-        }
-    }
-
-    fn new_shared_i64(v: i64) -> SharedPtr<i64> {
-        extern "C" {
-            #[link_name = "rxx_dummy_new_shared_i64"]
-            fn __func(val: i64, obj: *mut c_void);
-        }
-
-        let mut out = MaybeUninit::<SharedPtr<i64>>::uninit();
-        unsafe {
-            __func(v, out.as_mut_ptr() as *mut c_void);
-            out.assume_init()
-        }
-    }
+    genrs_fn!(fn new_unique_i64(v: i64) -> UniquePtr<i64>, ln=rxx_dummy_new_unique_i64);
+    genrs_fn!(fn new_shared_i64(v: i64) -> SharedPtr<i64>, ln=rxx_dummy_new_shared_i64);
 
     fn new_vector_i64(data: &[i64]) -> CxxVector<i64> {
         extern "C" {
@@ -92,6 +69,7 @@ mod tests {
         }
     }
 
+    // probamatic
     fn new_unique_string() -> UniquePtr<CxxString> {
         extern "C" {
             #[link_name = "rxx_dummy_new_unique_string"]
@@ -104,6 +82,7 @@ mod tests {
         }
     }
 
+    // probamatic
     fn new_shared_ptr_string() -> SharedPtr<CxxString> {
         extern "C" {
             #[link_name = "rxx_dummy_new_shared_string"]
