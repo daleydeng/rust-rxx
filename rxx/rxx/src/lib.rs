@@ -33,13 +33,13 @@ mod tests {
 
     use super::*;
 
-    genrs_fn!(pub fn rxx_dummy_cpp_new_vector_i64(a: i32) -> CxxVector<i64>);
+    rxx_macro::genrs_fn!(pub fn rxx_dummy_cpp_new_vector_i64(a: i32) -> CxxVector<i64> {});
+    rxx_macro::genrs_fn!(pub fn rxx_dummy_cpp_add_vector_i64(a: &mut CxxVector<i64>, i: i32) {});
 
-    genrs_fn!(pub fn rxx_dummy_cpp_add_vector_i64(a: &mut CxxVector<i64>, i: i32));
-    genrs_fn!(pub fn rxx_dummy_cpp_addret_vector_i64(a: &mut CxxVector<i64>, i: i32) -> i64, cret=atomic); // match with build.rs
+    rxx_macro::genrs_fn!(#[ffi(atomic)]	pub fn rxx_dummy_cpp_addret_vector_i64(a: &mut CxxVector<i64>, i: i32) -> i64 {}); // match with build.rs
 
-    genrs_fn!(pub fn rxx_dummy_cpp_get_vector_i64(a: &CxxVector<i64>) -> i64);
-    genrs_fn!(pub fn rxx_dummy_cpp_getvoid_vector_i64(a: &CxxVector<i64>, i: i32));
+    rxx_macro::genrs_fn!(pub fn rxx_dummy_cpp_get_vector_i64(a: &CxxVector<i64>) -> i64 {});
+    rxx_macro::genrs_fn!(pub fn rxx_dummy_cpp_getvoid_vector_i64(a: &CxxVector<i64>, i: i32) {});
     genrs_fn!(pub fn rxx_dummy_cpp_getref_vector_i64<'a>(a: &'a CxxVector<i64>, i: i32) -> &'a i64, cret=atomic);
 
     genrs_fn!(CxxVector<i64>;; pub fn add(&mut self, a: i32), ln=rxx_dummy_cpp_add_vector_i64);

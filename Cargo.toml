@@ -7,6 +7,7 @@ members = [
 ]
 
 [workspace.dependencies]
+rxx-macro.path = "rxx/rxx-macro"
 rxx-build.path = "rxx/rxx-build"
 rxx.path = "rxx/rxx"
 eigen-rxx-build.path = "eigen/eigen-rxx-build"
