@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 rxx.workspace = true
+rxx-macro.workspace = true
 eigen-rxx.workspace = true
 num = "0.4"
 

@@ -9,6 +9,7 @@ edition = "2021"
 
 [dependencies]
 rxx.workspace = true
+rxx-macro.workspace = true
 tensorrt-sys.workspace = true
 libc = "0.2"
 

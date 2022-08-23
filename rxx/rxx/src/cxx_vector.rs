@@ -120,3 +120,61 @@ impl<T: VectorElement> Drop for CxxVector<T> {
         unsafe { T::__drop(self) }
     }
 }
+
+#[macro_export]
+macro_rules! genrs_vector {
+    ($link_name:ident, $tp:ty) => {
+        paste::paste! {
+            impl $crate::VectorElement for $tp {
+                unsafe fn __drop(this: &mut $crate::CxxVector<$tp>) {
+                    extern "C" {
+                        #[link_name=stringify!([<$link_name _delete>])]
+                        fn func(this: &mut $crate::CxxVector<$tp>);
+                    }
+                    func(this)
+                }
+
+                unsafe fn __size(this: &$crate::CxxVector<$tp>) -> usize {
+                    extern "C" {
+                        #[link_name=stringify!([<$link_name _size>])]
+                        fn func(this: &$crate::CxxVector<$tp>) -> usize;
+                    }
+                    func(this)
+                }
+
+                unsafe fn __get_unchecked(this: &$crate::CxxVector<$tp>, pos: usize) -> &Self {
+                    extern "C" {
+                        #[link_name=stringify!([<$link_name _get>])]
+                        fn func(this: &$crate::CxxVector<$tp>, pos: usize) -> &$tp;
+                    }
+                    func(this, pos)
+                }
+
+                unsafe fn __get_unchecked_mut(this: &mut $crate::CxxVector<$tp>, pos: usize) -> &mut Self {
+                    extern "C" {
+                        #[link_name=stringify!([<$link_name _get_mut>])]
+                        fn func(this: &mut $crate::CxxVector<$tp>, pos: usize) -> &mut $tp;
+                    }
+                    func(this, pos)
+                }
+
+                unsafe fn __push_back(this: &mut $crate::CxxVector<$tp>, value: &mut $tp) {
+                    extern "C" {
+                        #[link_name=stringify!([<$link_name _push_back>])]
+                        fn func(this: &mut $crate::CxxVector<$tp>, value: &mut $tp);
+                    }
+                    func(this, value)
+                }
+
+                unsafe fn __pop_back(this: &mut $crate::CxxVector<$tp>, value: *mut $tp) {
+                    extern "C" {
+                        #[link_name=stringify!([<$link_name _pop_back>])]
+                        fn func(this: &mut $crate::CxxVector<$tp>, value: *mut $tp);
+                    }
+                    func(this, value)
+                }
+
+            }
+        }
+    }
+}

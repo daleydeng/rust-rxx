@@ -145,3 +145,28 @@ impl<T: Display + SharedPtrTarget> Display for SharedPtr<T> {
         }
     }
 }
+
+#[macro_export]
+macro_rules! genrs_shared_ptr {
+    ($link_name:ident, $tp:ty) => {
+        paste::paste! {
+            impl $crate::SharedPtrTarget for $tp {
+            unsafe fn __drop(this: *mut core::ffi::c_void) {
+                extern "C" {
+                #[link_name=stringify!([<$link_name _delete>])]
+                fn func(this: *mut core::ffi::c_void);
+                }
+                func(this);
+            }
+
+            unsafe fn __clone(this: *const core::ffi::c_void, out: *mut core::ffi::c_void) {
+                extern "C" {
+                #[link_name=stringify!([<$link_name _clone>])]
+                fn func(this: *const core::ffi::c_void, out: *mut core::ffi::c_void);
+                }
+                func(this, out);
+            }
+            }
+        }
+    };
+}

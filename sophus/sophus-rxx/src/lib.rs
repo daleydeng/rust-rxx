@@ -11,44 +11,77 @@ pub struct SO2<T: Float> {
 
 pub type SO2d = SO2<f64>;
 
-genrs_fn!(SO2d;; pub fn dof() -> i32, cret=atomic, ln=sophus_rxx_get_SO2d_DoF);
-genrs_fn!(SO2d;; pub fn num_parameters() -> i32, cret=atomic, ln=sophus_rxx_get_SO2d_num_parameters);
-genrs_fn!(SO2d;; pub fn n() -> i32, cret=atomic, ln=sophus_rxx_get_SO2d_N);
-genrs_fn!(SO2d;; pub fn dim() -> i32, cret=atomic, ln=sophus_rxx_get_SO2d_Dim);
+rxx_macro::genrs_fn!(
+    impl SO2d {
+	#[ffi(link_name="sophus_rxx_get_SO2d_DoF", atomic)]
+	pub fn dof() -> i32 {}
+	#[ffi(link_name="sophus_rxx_get_SO2d_num_parameters", atomic)]
+	pub fn num_parameters() -> i32 {}
+	#[ffi(link_name="sophus_rxx_get_SO2d_N", atomic)]
+	pub fn n() -> i32 {}
+	#[ffi(link_name="sophus_rxx_get_SO2d_Dim", atomic)]
+	pub fn dim() -> i32 {}
+	#[ffi(link_name="sophus_rxx_SO2d_Adj", atomic)]
+	pub fn adj(&self) -> f64 {}
+	#[ffi(link_name="sophus_rxx_SO2d_inverse", object)]
+	pub fn inverse(&self) -> SO2d {}
+	#[ffi(link_name="sophus_rxx_SO2d_log", atomic)]
+	pub fn log(&self) -> f64 {}
+	#[ffi(link_name="sophus_rxx_SO2d_normalize")]
+	pub fn normalize(&mut self) {}
+	#[ffi(link_name="sophus_rxx_SO2d_matrix")]
+	pub fn matrix(&self) -> Matrix2d {}
 
-genrs_fn!(SO2d;; pub fn adj(&self) -> f64, cret=atomic, ln=sophus_rxx_SO2d_Adj);
-genrs_fn!(SO2d;; pub fn inverse(&self) -> SO2d, cret=object, ln=sophus_rxx_SO2d_inverse);
-genrs_fn!(SO2d;; pub fn log(&self) -> f64, cret=atomic, ln=sophus_rxx_SO2d_log);
-genrs_fn!(SO2d;; pub fn normalize(&mut self), ln=sophus_rxx_SO2d_normalize);
-genrs_fn!(SO2d;; pub fn matrix(&self) -> Matrix2d, ln=sophus_rxx_SO2d_matrix);
+	#[ffi(link_name="sophus_rxx_SO2d_params")]
+	pub fn params(&self) -> Vector2d {}
 
-genrs_fn!(SO2d;; pub fn __mul(&self, other: &SO2d) -> SO2d, ln=sophus_rxx_SO2d_mul);
-impl Mul for SO2d {
-    type Output = Self;
-    fn mul(self, rhs: Self) -> Self::Output {
-	self.__mul(&rhs)
+	#[ffi(link_name="sophus_rxx_SO2d_setComplex")]
+	pub fn set_complex(&mut self, v: &Vector2d) {}
+
+	#[ffi(link_name="sophus_rxx_SO2d_unit_complex", atomic)]
+	pub fn unit_complex(&mut self) -> &Vector2d {}
     }
-}
 
-genrs_fn!(SO2d;; pub fn __mul_point(&self, other: &Vector2d) -> Vector2d, ln=sophus_rxx_SO2d_mul_point);
-impl Mul<Vector2d> for SO2d {
-    type Output = Vector2d;
-    fn mul(self, rhs: Self::Output) -> Self::Output {
-	self.__mul_point(&rhs)
+    impl Mul for &SO2d {
+	type Output = SO2d;
+	#[ffi(link_name="sophus_rxx_SO2d_mul")]
+	fn mul(self, rhs: Self) -> Self::Output {}
     }
-}
 
-genrs_fn!(SO2d;; pub fn __mul_hpoint(&self, other: &Vector3d) -> Vector3d, ln=sophus_rxx_SO2d_mul_hpoint);
-impl Mul<Vector3d> for SO2d {
-    type Output = Vector3d;
-    fn mul(self, rhs: Self::Output) -> Self::Output {
-	self.__mul_hpoint(&rhs)
+    impl Mul for SO2d {
+	type Output = Self;
+	fn mul(self, rhs: Self) -> Self::Output {
+	    &self * &rhs
+	}
     }
-}
 
-genrs_fn!(SO2d;; pub fn params(&self) -> Vector2d, ln=sophus_rxx_SO2d_matrix);
-genrs_fn!(SO2d;; pub fn set_complex(&mut self, v: &Vector2d), ln=sophus_rxx_SO2d_setComplex);
-genrs_fn!(SO2d;; pub fn unit_complex(&mut self) -> &Vector2d, cret=atomic, ln=sophus_rxx_SO2d_unit_complex);
+    impl Mul<&Vector2d> for &SO2d {
+	type Output = Vector2d;
+	#[ffi(link_name="sophus_rxx_SO2d_mul_point")]
+	fn mul(self, rhs: &Self::Output) -> Self::Output {}
+    }
+
+    impl Mul<Vector2d> for SO2d {
+	type Output = Vector2d;
+	fn mul(self, rhs: Self::Output) -> Self::Output {
+	    &self * &rhs
+	}
+    }
+
+    impl Mul<&Vector3d> for &SO2d {
+	type Output = Vector3d;
+	#[ffi(link_name="sophus_rxx_SO2d_mul_hpoint")]
+	fn mul(self, rhs: &Self::Output) -> Self::Output {}
+    }
+
+    impl Mul<Vector3d> for SO2d {
+	type Output = Vector3d;
+	fn mul(self, rhs: Self::Output) -> Self::Output {
+	    &self * &rhs
+	}
+    }
+
+);
 
 #[cfg(test)]
 mod tests {

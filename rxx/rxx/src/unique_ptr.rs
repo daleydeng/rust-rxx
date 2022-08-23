@@ -128,3 +128,20 @@ impl<T: Display + UniquePtrTarget> Display for UniquePtr<T> {
         }
     }
 }
+
+#[macro_export]
+macro_rules! genrs_unique_ptr {
+    ($link_name:ident, $tp:ty) => {
+        paste::paste! {
+            impl $crate::UniquePtrTarget for $tp {
+            unsafe fn __drop(this: *mut core::ffi::c_void) {
+                extern "C" {
+                #[link_name=stringify!([<$link_name _delete>])]
+                fn func(this: *mut core::ffi::c_void);
+                }
+                func(this);
+            }
+            }
+        }
+    };
+}
