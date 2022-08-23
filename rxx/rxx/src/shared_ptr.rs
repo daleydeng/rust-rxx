@@ -1,20 +1,19 @@
 use crate::weak_ptr::{WeakPtr, WeakPtrTarget};
-use core::ffi::c_void;
 use core::fmt::{self, Debug, Display};
 use core::marker::PhantomData;
 use core::ops::{Deref, DerefMut};
 use core::pin::Pin;
 use std::mem::MaybeUninit;
 
-pub trait SharedPtrTarget {
-    unsafe fn __drop(this: *mut c_void);
-    unsafe fn __clone(this: *const c_void, out: *mut c_void);
+pub trait SharedPtrTarget where Self: Sized {
+    unsafe fn __drop(this: &mut SharedPtr<Self>);
+    unsafe fn __clone(this: &SharedPtr<Self>, out: *mut SharedPtr<Self>);
 }
 
 #[repr(C)]
 pub struct SharedPtr<T: SharedPtrTarget> {
-    ptr: *mut c_void,
-    ctrl: *mut c_void,
+    ptr: *mut T,
+    ctrl: *mut T,
     pd: PhantomData<T>,
 }
 
@@ -69,10 +68,7 @@ impl<T: SharedPtrTarget> SharedPtr<T> {
     {
         let mut out = MaybeUninit::<WeakPtr<T>>::uninit();
         unsafe {
-            T::__downgrade(
-                self as *const Self as *const c_void,
-                out.as_mut_ptr().cast(),
-            );
+            T::__downgrade(self,out.as_mut_ptr());
             out.assume_init()
         }
     }
@@ -86,8 +82,8 @@ impl<T: SharedPtrTarget> Clone for SharedPtr<T> {
         let mut out = MaybeUninit::<Self>::uninit();
         unsafe {
             T::__clone(
-                self as *const Self as *const c_void,
-                out.as_mut_ptr().cast(),
+		self,
+                out.as_mut_ptr(),
             );
             out.assume_init()
         }
@@ -97,7 +93,7 @@ impl<T: SharedPtrTarget> Clone for SharedPtr<T> {
 impl<T: SharedPtrTarget> Drop for SharedPtr<T> {
     fn drop(&mut self) {
         unsafe {
-            T::__drop(self as *mut Self as *mut c_void);
+            T::__drop(self)
         }
     }
 }
@@ -151,18 +147,18 @@ macro_rules! genrs_shared_ptr {
     ($link_name:ident, $tp:ty) => {
         paste::paste! {
             impl $crate::SharedPtrTarget for $tp {
-            unsafe fn __drop(this: *mut core::ffi::c_void) {
+            unsafe fn __drop(this: &mut SharedPtr<$tp>) {
                 extern "C" {
                 #[link_name=stringify!([<$link_name _delete>])]
-                fn func(this: *mut core::ffi::c_void);
+                fn func(this: &mut SharedPtr<$tp>);
                 }
                 func(this);
             }
 
-            unsafe fn __clone(this: *const core::ffi::c_void, out: *mut core::ffi::c_void) {
+            unsafe fn __clone(this: &SharedPtr<$tp>, out: *mut SharedPtr<Self>) {
                 extern "C" {
-                #[link_name=stringify!([<$link_name _clone>])]
-                fn func(this: *const core::ffi::c_void, out: *mut core::ffi::c_void);
+                    #[link_name=stringify!([<$link_name _clone>])]
+                    fn func(this: &SharedPtr<$tp>, out: *mut SharedPtr<$tp>);
                 }
                 func(this, out);
             }

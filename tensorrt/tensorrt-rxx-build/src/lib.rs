@@ -7,6 +7,8 @@ use anyhow::{bail, Result};
 use rxx_build::*;
 
 const C_HDR: &str = include_str!("../include/wrapper.hh");
+const C_SRC: &str = include_str!("../csrc/wrapper.cc");
+
 const NAME: &str = "tensorrt_rxx";
 
 pub fn genc_fns() -> Vec<String> {
@@ -24,6 +26,19 @@ pub fn genc_fns() -> Vec<String> {
 	    args: &[
 		("void*", "obj"),
 		("log_fn_t", "log_fn"),
+	    ],
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{lp}_log"),
+	FnSig {
+	    c_fn: "log",
+	    args: &[
+		("ILogger*", "self"),
+		("ILogger::Severity", "severity"),
+		("const char*", "msg"),
 	    ],
 	    ..default()
 	}
@@ -61,15 +76,21 @@ using namespace tensorrt_rxx;
 }
 
 pub fn dump_sources_tensorrt(src_dir: &Path) -> Result<HashSet<PathBuf>> {
-    static ONCE: Once = Once::new();
+    static ONCE_WRAPPER: Once = Once::new();
+    static ONCE_FFI: Once = Once::new();
 
     let mut out = dump_sources_rxx(src_dir)?;
     let src_dir = src_dir.join(NAME);
+
+    let wrapper_f = src_dir.join("wrapper.cc");
+    dump_file_once(&wrapper_f, C_SRC, &ONCE_WRAPPER);
+    out.insert(wrapper_f);
+
     let ffi_f = src_dir.join("ffi.cc");
     let fn_codes = genc_fns();
     let fn_codes: Vec<&str> = fn_codes.iter().map(AsRef::as_ref).collect();
     let ffi_code = genc_file_tensorrt(&fn_codes).unwrap();
-    dump_file_once(&ffi_f, &ffi_code, &ONCE);
+    dump_file_once(&ffi_f, &ffi_code, &ONCE_FFI);
     out.insert(ffi_f);
     Ok(out)
 }

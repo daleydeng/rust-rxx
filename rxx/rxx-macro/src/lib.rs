@@ -13,7 +13,7 @@ enum ReturnType<T> {
     NewPtr(T),
 }
 
-fn deref_box_type(t: &syn::Type) -> Option<&syn::Type> {
+fn get_path_segment(t: &syn::Type) -> Option<&syn::PathSegment> {
     let syn::Type::Path(syn::TypePath {path: syn::Path{segments, ..}, ..}) = t else {
 	return None;
     };
@@ -22,10 +22,16 @@ fn deref_box_type(t: &syn::Type) -> Option<&syn::Type> {
 	return None
     }
 
+    segments.first()
+}
+
+fn deref_pointer_type(t: &syn::Type) -> Option<&syn::Type> {
+    let seg = get_path_segment(t);
+
     let Some(syn::PathSegment{
 	arguments: syn::PathArguments::AngleBracketed(
 	    syn::AngleBracketedGenericArguments{
-		args, ..}), ..}) = segments.first() else {
+		args, ..}), ..}) = seg else {
 	return None;
     };
 
@@ -143,12 +149,12 @@ fn parse_fn(attrs: &[syn::Attribute], vis: &syn::Visibility, sig: &syn::Signatur
 		ReturnType::Atomic(_) => ReturnType::Atomic(t1),
 		ReturnType::Object(_) => ReturnType::Object(t1),
 		ReturnType::NewPtr(_) => {
-		    if let Some(inside_t) = deref_box_type(&t1) {
+		    if let Some(inside_t) = deref_pointer_type(&t1) {
 			ReturnType::NewPtr(Box::new(inside_t.clone()))
 		    } else {
 			return Err(syn::Error::new(
 			    t.span(),
-			    "new_ptr required Boxed Type"));
+			    "new_ptr required Pointer Type"));
 		    }
 		}
 		_ => panic!("ret_mode invalid! {:?}", ret_mode),
@@ -246,7 +252,15 @@ fn parse_fn(attrs: &[syn::Attribute], vis: &syn::Visibility, sig: &syn::Signatur
 		    }
 		},
 
-	    ReturnType::NewPtr(rt) =>
+	    ReturnType::NewPtr(rt) => {
+		let syn::ReturnType::Type(_, tp) = &sig.output else {
+		    return Err(syn::Error::new(
+			sig.output.span(),
+			"new_ptr mode need return type"));
+		};
+		let seg = get_path_segment(tp).unwrap();
+		let rs_rt = &seg.ident;
+
 		quote!{
 		    #vis #sig {
 			extern "C" {
@@ -254,11 +268,14 @@ fn parse_fn(attrs: &[syn::Attribute], vis: &syn::Visibility, sig: &syn::Signatur
 			    fn __func #fn_generics (#c_decl_inputs) -> *mut #rt;
 			}
 			unsafe {
-			    Box::from_raw(__func(#c_call_inputs))
+			    #rs_rt {
+				ptr: __func(#c_call_inputs),
+				_pd: PhantomData,
+			    }
 			}
 		    }
-		},
-
+		}
+	    },
 	    ReturnType::None =>
 		quote!{
 		    #vis #sig {

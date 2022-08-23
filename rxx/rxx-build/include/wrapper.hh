@@ -12,6 +12,11 @@ void destroy(T *ptr) {
 }
 
 template<typename T>
+void delete_pointer(T *ptr) {
+  delete ptr;
+}
+
+template<typename T>
 void shared_ptr_clone(const std::shared_ptr<T> &self, std::shared_ptr<T> *out)
 {
   new (out) std::shared_ptr<T>(self);

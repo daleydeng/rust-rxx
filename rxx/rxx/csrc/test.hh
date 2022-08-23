@@ -32,3 +32,4 @@ struct Dummy {
     return std::make_unique<Dummy>(data, len);
   }
 };
+

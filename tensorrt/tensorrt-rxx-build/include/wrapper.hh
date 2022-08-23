@@ -24,4 +24,6 @@ struct RustLogger: ILogger {
   log_fn_t *log_fn_;
 };
 
+void log(ILogger *logger, ILogger::Severity severity, const char *msg);
+
 } // namespace tensorrt_rxx

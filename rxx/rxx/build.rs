@@ -129,6 +129,17 @@ fn main() -> Result<()> {
                         ..default()
                     },
                 ),
+
+		&genc_fn(
+		    "rxx_dummy_i64_delete",
+		    FnSig {
+			c_fn: "rxx::delete_pointer<int64_t>",
+			args: &[
+			    ("int64_t*", "ptr"),
+			],
+			..default()
+		    }
+		)
             ]).unwrap().as_bytes(),
         )?;
 

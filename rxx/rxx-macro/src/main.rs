@@ -1,5 +1,19 @@
 // struct Dummy<'a> {}
-use std::ops::Mul;
+use std::{ops::Mul, marker::PhantomData};
+
+struct Pointer<T> {
+    pub ptr: *mut T,
+    _pd: PhantomData<T>,
+}
+
+impl<T> Default for Pointer<T> {
+    fn default() -> Self {
+        Self {
+            ptr: std::ptr::null_mut(),
+            _pd: Default::default(),
+        }
+    }
+}
 
 #[repr(C)]
 struct SO2d {}
@@ -25,8 +39,12 @@ rxx_macro::genrs_fn!(
     //     pub fn get(&self, idx: usize) -> i64 {}
     // }
 
-    #[ffi(link_name="rxx_dummy_cpp_get_vector_i64", new_ptr)]
-    pub fn get1() -> Box<i64> {}
+
+    // #[ffi(link_name = "rxx_dummy_i64_new", new_ptr)]
+    // fn dummy_i64_new() -> Pointer<i64> {};
+
+    #[ffi(link_name="rxx_dummy_i64_new", new_ptr)]
+    pub fn dummy_i64_new() -> Pointer<i64> {}
 
     // impl SO2d {
     //     type Output = Self;
@@ -34,11 +52,11 @@ rxx_macro::genrs_fn!(
     //     fn mul(&self, other: &mut Self::Output) -> &Self::Output {}
     // }
 
-    impl Mul<Self> for &SO2d {
-	type Output = SO2d;
-        #[ffi(link_name="sophus_rxx_SO2d_mul")]
-        fn mul(self, rhs: Self) -> Self::Output {}
-    }
+    // impl Mul<Self> for &SO2d {
+    // 	type Output = SO2d;
+    //     #[ffi(link_name="sophus_rxx_SO2d_mul")]
+    //     fn mul(self, rhs: Self) -> Self::Output {}
+    // }
 );
 
 fn main() {}

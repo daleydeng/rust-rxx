@@ -1,17 +1,6 @@
-use rxx::*;
-use tensorrt_sys::nvinfer1::ILogger;
-
-#[repr(C)]
-pub struct RustLogger{}
-
-pub type LogFnType = extern "C" fn(obj: *mut libc::c_void, msg: *const libc::c_char);
-
-// ILogger delete
-
-rxx_macro::genrs_fn!(
-    #[ffi(link_name="tensorrt_rxx_RustLogger_create", new_ptr)]
-    pub fn create_rust_logger(obj: *mut libc::c_void, log_fn: &LogFnType) -> Box<ILogger> {}
-);
+#![feature(default_free_fn)]
+mod logger;
+pub use logger::*;
 
 #[cfg(test)]
 mod tests {
@@ -19,5 +8,14 @@ mod tests {
 
     #[test]
     fn test_callback() {
+	let msg = "hello world";
+	let mut rust_logger = Default::default();
+	// rust cant infer here, need drop logger first, don't know why
+	{
+	    let mut logger = create_rust_logger(&mut rust_logger, RustLogger::log);
+
+	    log(&mut logger, Severity::kINFO, msg);
+	}
+	assert_eq!(rust_logger.get_msg(), msg);
     }
 }

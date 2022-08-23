@@ -8,6 +8,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+paste = "1"
 rxx.workspace = true
 rxx-macro.workspace = true
 tensorrt-sys.workspace = true

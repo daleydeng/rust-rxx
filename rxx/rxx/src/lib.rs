@@ -1,6 +1,9 @@
 #![allow(clippy::missing_safety_doc)]
 #![feature(associated_type_defaults)]
 
+pub mod pointer;
+pub use pointer::*;
+
 pub mod unique_ptr;
 pub use unique_ptr::*;
 
@@ -16,6 +19,9 @@ pub use cxx_string::*;
 pub mod cxx_vector;
 pub use cxx_vector::*;
 
+pub mod genrs;
+pub use genrs::*;
+
 pub type UniqueString = UniquePtr<CxxString>;
 
 genrs_unique_ptr!(rxx_unique_string, crate::CxxString);
@@ -24,7 +30,6 @@ genrs_weak_ptr!(rxx_weak_string, crate::CxxString);
 
 #[cfg(test)]
 mod tests {
-    use core::ffi::c_void;
     use std::marker::PhantomData;
     use std::mem::MaybeUninit;
 
@@ -76,12 +81,16 @@ mod tests {
             }
 	}
 
+	#[ffi(link_name = "rxx_dummy_i64_new", new_ptr)]
+	pub fn dummy_i64_new() -> Pointer<i64> {}
+
     );
 
     genrs_unique_ptr!(rxx_unique_i64, i64);
     genrs_shared_ptr!(rxx_shared_i64, i64);
     genrs_weak_ptr!(rxx_weak_i64, i64);
     genrs_vector!(rxx_vector_i64, i64);
+    genrs_pointer_drop!(rxx_dummy_i64_delete, i64);
 
     #[repr(C)]
     struct Dummy<'a> {
@@ -242,5 +251,10 @@ mod tests {
     fn test_shared_string() {
         let s = new_shared_string();
         assert_eq!(s.to_str(), "test");
+    }
+
+    #[test]
+    fn test_pointer() {
+	let _ = dummy_i64_new();
     }
 }

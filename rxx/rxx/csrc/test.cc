@@ -51,4 +51,8 @@ void rxx_dummy_new_shared_string(std::shared_ptr<std::string> *out) {
   new (out) std::shared_ptr<std::string>(new std::string("test"));
 }
 
+int64_t *rxx_dummy_i64_new() {
+  return new int64_t(5);
+}
+
 } // extern "C"
