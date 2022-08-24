@@ -2,6 +2,7 @@ include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 pub use root::*;
 
+
 #[cfg(test)]
 mod tests {
     use super::nvinfer1::*;

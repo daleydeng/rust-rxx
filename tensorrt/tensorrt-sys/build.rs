@@ -55,9 +55,16 @@ fn main() -> Result<()> {
 	}
     }
 
+    for f in ["NvOnnxParser.h"] {
+	for n in extract_enum_names(inc_dir.join(f).to_str().unwrap())? {
+	    builder = builder.allowlist_type(format!("nvonnxparser::{n}"));
+	}
+    }
+
     for t in [
 	"nvinfer1::ILogger",
-	"nvinfer1::IBuilder"
+	"nvinfer1::IBuilder",
+	"nvonnxparser::IParser",
     ] {
 	builder = builder.allowlist_type(t);
     }

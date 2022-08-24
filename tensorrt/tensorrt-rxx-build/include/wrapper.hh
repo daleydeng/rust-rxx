@@ -1,10 +1,14 @@
 #pragma once
 
 #include <NvInfer.h>
+#include <NvOnnxParser.h>
 
 namespace tensorrt_rxx {
 
 using namespace nvinfer1;
+
+using OnnxIParser = nvonnxparser::IParser;
+using OnnxIParserError = nvonnxparser::IParserError;
 
 extern "C" using log_fn_t = void(void *obj, ILogger::Severity severity, const char *msg);
 

@@ -4,8 +4,22 @@ use libc::c_char;
 use rxx::*;
 use rxx_macro::*;
 use tensorrt_sys::nvinfer1 as ffi;
+// use crate::wrapper::*;
 
 pub type Severity = ffi::ILogger_Severity;
+
+fn to_str(v: Severity) -> String {
+    use ffi::ILogger_Severity::*;
+
+    let s = match v {
+	kVERBOSE => "verbose",
+	kINFO => "info",
+	kWARNING => "warning",
+	kERROR => "error",
+	kINTERNAL_ERROR => "internal_error",
+    };
+    s.into()
+}
 
 #[repr(transparent)]
 pub struct ILogger<'a> {
@@ -36,7 +50,9 @@ impl RustLogger {
 	if severity as i32 > self.severity as i32 {
 	    return;
 	}
-	self.last_msg = CStr::from_ptr(msg).to_string_lossy().into_owned();
+	let msg = CStr::from_ptr(msg).to_string_lossy().into_owned();
+	println!("[{}] {msg}", to_str(severity));
+	self.last_msg = msg;
     }
 }
 
@@ -45,14 +61,14 @@ pub type LogFnType = unsafe extern "C" fn(logger: &mut RustLogger, severity: Sev
 pub fn create_rust_logger(
     logger: &mut RustLogger,
     log_fn: LogFnType,
-) -> CxxPointer<ILogger> {
+) -> Box<ILogger> {
     extern "C" {
         #[link_name = "tensorrt_rxx_RustLogger_create"]
         fn __func<'a>(logger: *mut (), log_fn: *const ()) -> *mut ILogger<'a>;
     }
     unsafe {
 	let ptr = __func(logger as *mut RustLogger as *mut(), log_fn as *const ());
-	CxxPointer::from_raw(ptr)
+	Box::from_raw(ptr)
     }
 }
 

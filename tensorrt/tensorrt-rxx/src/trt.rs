@@ -1,25 +1,7 @@
-use std::marker::PhantomData;
-use crate::ILogger;
 use rxx::*;
 use rxx_macro::*;
 use tensorrt_sys::nvinfer1 as ffi;
-
-macro_rules! impl_interface {
-    ($name:ident, $ffi_ty:ty) => {
-	paste::paste! {
-	    #[repr(transparent)]
-	    pub struct $name<'a> {
-		_obj: $ffi_ty,
-		_pd: PhantomData<&'a ()>
-	    }
-	    genrs_pointer_drop!([<tensorrt_rxx_ $name _delete>], $name<'_>);
-	}
-    };
-
-    ($name:ident) => {
-	impl_interface!($name, ffi::$name);
-    };
-}
+use crate::ILogger;
 
 impl_interface!(INetworkDefinition);
 impl_interface!(IBuilderConfig);
@@ -31,7 +13,9 @@ genrs_fn!(
 
     impl<'a> IBuilder<'a> {
 	#[ffi(link_name="tensorrt_rxx_IBuilder_createNetworkV2", new_ptr)]
-	pub fn create_network_v2(&mut self, flags: ffi::NetworkDefinitionCreationFlag) -> CxxPointer<INetworkDefinition<'a>> {}
+	pub fn create_network_v2(&mut self, flags: ffi::NetworkDefinitionCreationFlags) -> CxxPointer<INetworkDefinition<'a>> {}
 
+	#[ffi(link_name="tensorrt_rxx_IBuilder_createBuilderConfig", new_ptr)]
+	pub fn create_builder_config(&mut self) -> CxxPointer<IBuilderConfig<'a>> {}
     }
 );

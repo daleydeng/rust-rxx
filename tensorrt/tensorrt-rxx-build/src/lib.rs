@@ -15,8 +15,8 @@ pub fn genc_fns() -> Vec<String> {
     let mut out = vec![];
     let lp = NAME;
 
-    for cls in ["ILogger", "IBuilder", "INetworkDefinition", "IBuilderConfig"] {
-	out.push(genc_destroy(&format!("{lp}_{cls}_delete"), cls));
+    for cls in ["ILogger", "IBuilder", "INetworkDefinition", "IBuilderConfig", "OnnxIParser"] {
+	out.push(genc_delete(&format!("{lp}_{cls}_delete"), cls));
     }
 
     out.push(genc_fn(
@@ -40,6 +40,19 @@ pub fn genc_fns() -> Vec<String> {
 		("ILogger*", "self"),
 		("ILogger::Severity", "severity"),
 		("const char*", "msg"),
+	    ],
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{lp}_createOnnxParser"),
+	FnSig {
+	    c_fn: "nvonnxparser::createParser",
+	    ret_type: ReturnType::Atomic("nvonnxparser::IParser*"),
+	    args: &[
+		("INetworkDefinition&", "network"),
+		("ILogger&", "logger"),
 	    ],
 	    ..default()
 	}
@@ -78,6 +91,54 @@ pub fn genc_fns() -> Vec<String> {
 	    c_fn: "&$C::createBuilderConfig",
 	    is_mut: true,
 	    ret_type: ReturnType::Atomic("IBuilderConfig*"),
+	    ..default()
+	}
+    ));
+
+    let cls = "OnnxIParser";
+    out.push(genc_fn(
+	&format!("{lp}_{cls}_parseFromFile"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::parseFromFile",
+	    is_mut: true,
+	    ret_type: ReturnType::Atomic("bool"),
+	    args: &[
+		("const char*", "fname"),
+		("int", "verbosity"),
+	    ],
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{lp}_{cls}_clearErrors"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::clearErrors",
+	    is_mut: true,
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{lp}_{cls}_getNbErrors"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::getNbErrors",
+	    ret_type: ReturnType::Atomic("int"),
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{lp}_{cls}_getError"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::getError",
+	    ret_type: ReturnType::Atomic("OnnxIParserError const*"),
+	    args: &[
+		("int", "index"),
+	    ],
 	    ..default()
 	}
     ));
