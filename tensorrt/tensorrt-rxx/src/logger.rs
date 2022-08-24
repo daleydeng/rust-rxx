@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 use std::ffi::{CStr, CString};
-use libc::{c_char, c_void};
+use libc::c_char;
 use rxx::*;
 use rxx_macro::*;
 use tensorrt_sys::nvinfer1 as ffi;
@@ -17,64 +17,44 @@ genrs_pointer_drop!(tensorrt_rxx_ILogger_delete, ILogger<'_>);
 
 #[repr(C)]
 pub struct RustLogger {
-    severity: Severity,
-    last_msg: *mut c_char,
+    pub severity: Severity,
+    pub last_msg: String,
 }
 
 impl Default for RustLogger {
     fn default() -> Self {
 	Self {
 	    severity: Severity::kINFO,
-	    last_msg: std::ptr::null_mut(),
+	    last_msg: String::new(),
 	}
-    }
-}
-
-impl Drop for RustLogger {
-    fn drop(&mut self) {
-	self.free()
     }
 }
 
 impl RustLogger {
-
-    pub fn free(&mut self) {
-	unsafe {
-	    if !self.last_msg.is_null() {
-		libc::free(self.last_msg as *mut c_void);
-		self.last_msg = std::ptr::null_mut();
-	    }
-	}
-    }
-
-    pub fn set_msg(&mut self, msg: *const c_char) {
-	unsafe {
-	    self.free();
-	    self.last_msg = libc::strdup(msg);
-	};
-    }
-
-    pub fn get_msg(&self) -> &str {
-	if self.last_msg.is_null() {
-	    return "";
-	}
-	unsafe {CStr::from_ptr(self.last_msg)}.to_str().unwrap()
-    }
-
     pub extern "C" fn log(&mut self, severity: Severity, msg: *const c_char) {
 	if severity as i32 > self.severity as i32 {
 	    return;
 	}
-	self.set_msg(msg);
+	self.last_msg = unsafe { CStr::from_ptr(msg) }.to_string_lossy().into_owned();
     }
 }
 
 pub type LogFnType = extern "C" fn(logger: &mut RustLogger, severity: Severity, msg: *const c_char);
 
-genrs_fn!(
-    #[ffi(link_name="tensorrt_rxx_RustLogger_create", new_ptr)]
-    pub fn create_rust_logger<'a>(logger: &'a mut RustLogger, log_fn: LogFnType) -> Pointer<ILogger<'a>> {}
-);
+pub fn create_rust_logger<'a>(
+    logger: &'a mut RustLogger,
+    log_fn: LogFnType,
+) -> Pointer<ILogger<'a>> {
+    extern "C" {
+        #[link_name = "tensorrt_rxx_RustLogger_create"]
+        fn __func<'a>(logger: *mut (), log_fn: *const ()) -> *mut ILogger<'a>;
+    }
+    unsafe {
+	let ptr = __func(logger as *mut RustLogger as *mut(), log_fn as *const ());
+	Pointer::from_raw(ptr)
+    }
+}
+
 
 genrs_fn!(
     #[ffi(link_name="tensorrt_rxx_log")]

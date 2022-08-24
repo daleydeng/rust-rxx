@@ -136,8 +136,8 @@ extern "C" void rxx_Matrix3d_print(Matrix3d const & self) noexcept {
         assert_eq!(
             s,
             r#"
-extern "C" void rxx_unique_string_delete(std::unique_ptr<std::string> &self) noexcept {
-    rxx::destroy(&self);
+extern "C" void rxx_unique_string_destroy(std::unique_ptr<std::string> &self) noexcept {
+    rxx::destroy(self);
 }
 "#
             .trim_start()
@@ -145,8 +145,8 @@ extern "C" void rxx_unique_string_delete(std::unique_ptr<std::string> &self) noe
 
         let s = genc_shared_ptr("rxx_shared_string", "std::shared_ptr<std::string>");
         assert_eq!(s, r#"
-extern "C" void rxx_shared_string_delete(std::shared_ptr<std::string> &self) noexcept {
-    rxx::destroy(&self);
+extern "C" void rxx_shared_string_destroy(std::shared_ptr<std::string> &self) noexcept {
+    rxx::destroy(self);
 }
 
 extern "C" void rxx_shared_string_clone(const std::shared_ptr<std::string> &self, std::shared_ptr<std::string> *out) noexcept {
@@ -160,8 +160,8 @@ extern "C" void rxx_shared_string_clone(const std::shared_ptr<std::string> &self
             "std::shared_ptr<std::string>",
         );
         assert_eq!(s, r#"
-extern "C" void rxx_weak_string_delete(std::weak_ptr<std::string> &self) noexcept {
-    rxx::destroy(&self);
+extern "C" void rxx_weak_string_destroy(std::weak_ptr<std::string> &self) noexcept {
+    rxx::destroy(self);
 }
 
 extern "C" void rxx_weak_string_clone(const std::weak_ptr<std::string> &self, std::weak_ptr<std::string> *out) noexcept {
@@ -183,8 +183,8 @@ extern "C"  void rxx_weak_string_downgrade(const std::shared_ptr<std::string> &s
             "std::string",
         );
         assert_eq!(s,  r#"
-extern "C" void rxx_vector_string_delete(const std::vector<std::string> &self) {
-    rxx::destroy(&self);
+extern "C" void rxx_vector_string_destroy(const std::vector<std::string> &self) {
+    rxx::destroy(self);
 }
 
 extern "C" std::size_t rxx_vector_string_size(const std::vector<std::string> &self) {

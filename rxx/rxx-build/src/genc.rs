@@ -77,14 +77,14 @@ extern "C" {{ret_type}} {{name}}() noexcept {
 "#;
 
 static TPL_UNIQUE_PTR: &str = r#"
-extern "C" void {{name}}_delete({{{c_tp}}} &self) noexcept {
-    rxx::destroy(&self);
+extern "C" void {{name}}_destroy({{{c_tp}}} &self) noexcept {
+    rxx::destroy(self);
 }
 "#;
 
 static TPL_SHARED_PTR: &str = r#"
-extern "C" void {{name}}_delete({{{c_tp}}} &self) noexcept {
-    rxx::destroy(&self);
+extern "C" void {{name}}_destroy({{{c_tp}}} &self) noexcept {
+    rxx::destroy(self);
 }
 
 extern "C" void {{name}}_clone(const {{{c_tp}}} &self, {{{c_tp}}} *out) noexcept {
@@ -93,8 +93,8 @@ extern "C" void {{name}}_clone(const {{{c_tp}}} &self, {{{c_tp}}} *out) noexcept
 "#;
 
 static TPL_WEAK_PTR: &str = r#"
-extern "C" void {{name}}_delete({{{c_tp}}} &self) noexcept {
-    rxx::destroy(&self);
+extern "C" void {{name}}_destroy({{{c_tp}}} &self) noexcept {
+    rxx::destroy(self);
 }
 
 extern "C" void {{name}}_clone(const {{{c_tp}}} &self, {{{c_tp}}} *out) noexcept {
@@ -111,8 +111,8 @@ extern "C"  void {{name}}_downgrade(const {{{c_shared_tp}}} &self, {{{c_tp}}} *o
 "#;
 
 static TPL_VECTOR: &str = r#"
-extern "C" void {{name}}_delete(const {{{c_tp}}} &self) {
-    rxx::destroy(&self);
+extern "C" void {{name}}_destroy(const {{{c_tp}}} &self) {
+    rxx::destroy(self);
 }
 
 extern "C" std::size_t {{name}}_size(const {{{c_tp}}} &self) {
@@ -287,8 +287,16 @@ pub fn genc_fn(link_name: &str, fn_sig: FnSig) -> String {
 
 pub fn genc_delete(link_name: &str, c_tp: &str) -> String {
     format!(r#"
-extern "C" void {link_name}({c_tp} *self) noexcept {{
-    delete self;
+extern "C" void {link_name}({c_tp} *ptr) noexcept {{
+    delete ptr;
+}}
+"#).trim_start().into()
+}
+
+pub fn genc_destroy(link_name: &str, c_tp: &str) -> String {
+    format!(r#"
+extern "C" void {link_name}({c_tp} &self) noexcept {{
+    self.~{c_tp}();
 }}
 "#).trim_start().into()
 }

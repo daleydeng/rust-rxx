@@ -1,7 +1,7 @@
 // we need 2.17 conda sysroot due to libMvCameraControl need 2.15 glibc
 
 use std::env;
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::{self, BufRead};
 use std::path::PathBuf;
 use anyhow::Result;
@@ -64,9 +64,13 @@ fn main() -> Result<()> {
 
     let bindings = builder.generate()?;
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let bindings_f = out_path.join("bindings.rs");
     bindings
-        .write_to_file(out_path.join("bindings.rs"))
+        .write_to_file(&bindings_f)
         .expect("Couldn't write bindings!");
+
+    fs::create_dir_all("gen")?;
+    fs::copy(bindings_f, "gen/bindings.rs")?;
 
     Ok(())
 }

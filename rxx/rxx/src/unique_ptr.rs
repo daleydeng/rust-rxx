@@ -135,7 +135,7 @@ macro_rules! genrs_unique_ptr {
             impl $crate::UniquePtrTarget for $tp {
 		unsafe fn __drop(this: &mut UniquePtr<$tp>) {
                     extern "C" {
-			#[link_name=stringify!([<$link_name _delete>])]
+			#[link_name=stringify!([<$link_name _destroy>])]
 			fn func(this: &mut UniquePtr<$tp>);
                     }
                     func(this);

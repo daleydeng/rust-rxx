@@ -43,8 +43,8 @@ rxx_macro::genrs_fn!(
     // #[ffi(link_name = "rxx_dummy_i64_new", new_ptr)]
     // fn dummy_i64_new() -> Pointer<i64> {};
 
-    #[ffi(link_name="rxx_dummy_i64_new", new_ptr)]
-    pub fn dummy_i64_new() -> Pointer<i64> {}
+    // #[ffi(link_name="rxx_dummy_i64_new", new_ptr)]
+    // pub fn dummy_i64_new() -> Pointer<i64> {}
 
     // impl SO2d {
     //     type Output = Self;

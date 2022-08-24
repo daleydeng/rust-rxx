@@ -78,7 +78,7 @@ macro_rules! genrs_weak_ptr {
             impl $crate::WeakPtrTarget for $tp {
 		unsafe fn __drop(this: &mut WeakPtr<Self>) {
                     extern "C" {
-			#[link_name=stringify!([<$link_name _delete>])]
+			#[link_name=stringify!([<$link_name _destroy>])]
 			fn func(this: &mut WeakPtr<$tp>);
                     }
                     func(this);

@@ -128,7 +128,7 @@ macro_rules! genrs_vector {
             impl $crate::VectorElement for $tp {
                 unsafe fn __drop(this: &mut $crate::CxxVector<$tp>) {
                     extern "C" {
-                        #[link_name=stringify!([<$link_name _delete>])]
+                        #[link_name=stringify!([<$link_name _destroy>])]
                         fn func(this: &mut $crate::CxxVector<$tp>);
                     }
                     func(this)

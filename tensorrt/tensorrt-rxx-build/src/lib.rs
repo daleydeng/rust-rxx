@@ -15,8 +15,9 @@ pub fn genc_fns() -> Vec<String> {
     let mut out = vec![];
     let lp = NAME;
 
-    let cls = "ILogger";
-    out.push(genc_delete(&format!("{lp}_{cls}_delete"), cls));
+    for cls in ["ILogger", "IBuilder"] {
+	out.push(genc_destroy(&format!("{lp}_{cls}_delete"), cls));
+    }
 
     out.push(genc_fn(
 	&format!("{lp}_RustLogger_create"),
@@ -39,6 +40,18 @@ pub fn genc_fns() -> Vec<String> {
 		("ILogger*", "self"),
 		("ILogger::Severity", "severity"),
 		("const char*", "msg"),
+	    ],
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{lp}_createInferBuilder"),
+	FnSig {
+	    c_fn: "createInferBuilder",
+	    ret_type: ReturnType::Atomic("IBuilder*"),
+	    args: &[
+		("ILogger&", "logger"),
 	    ],
 	    ..default()
 	}

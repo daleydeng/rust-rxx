@@ -7,8 +7,8 @@
 namespace rxx {
 
 template <typename T>
-void destroy(T *ptr) {
-  ptr->~T();
+void destroy(T &self) {
+  self.~T();
 }
 
 template<typename T>
@@ -59,7 +59,7 @@ T& vector_get_mut(std::vector<T> &self, size_t pos) {
 template<typename T>
 void vector_push_back(std::vector<T> &self, T &value) {
   self.push_back(std::move(value));
-  destroy(&value);
+  destroy(value);
 }
 
 template<typename T>

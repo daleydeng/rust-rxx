@@ -148,15 +148,7 @@ fn parse_fn(attrs: &[syn::Attribute], vis: &syn::Visibility, sig: &syn::Signatur
 	    match ret_mode {
 		ReturnType::Atomic(_) => ReturnType::Atomic(t1),
 		ReturnType::Object(_) => ReturnType::Object(t1),
-		ReturnType::NewPtr(_) => {
-		    if let Some(inside_t) = deref_pointer_type(&t1) {
-			ReturnType::NewPtr(Box::new(inside_t.clone()))
-		    } else {
-			return Err(syn::Error::new(
-			    t.span(),
-			    "new_ptr required Pointer Type"));
-		    }
-		}
+		ReturnType::NewPtr(_) => ReturnType::NewPtr(t1),
 		_ => panic!("ret_mode invalid! {:?}", ret_mode),
 	    }
 	},
@@ -253,25 +245,28 @@ fn parse_fn(attrs: &[syn::Attribute], vis: &syn::Visibility, sig: &syn::Signatur
 		},
 
 	    ReturnType::NewPtr(rt) => {
-		let syn::ReturnType::Type(_, tp) = &sig.output else {
+                let Some(inside_t) = deref_pointer_type(&rt)  else {
 		    return Err(syn::Error::new(
-			sig.output.span(),
-			"new_ptr mode need return type"));
+			rt.span(),
+			"new_ptr required Pointee type"));
 		};
-		let seg = get_path_segment(tp).unwrap();
-		let rs_rt = &seg.ident;
+
+		let Some(ptr_name) = get_path_segment(&rt) else {
+		    return Err(syn::Error::new(
+			rt.span(),
+			"new_ptr required Pointer Name"));
+		};
+		let ptr_name = &ptr_name.ident;
 
 		quote!{
 		    #vis #sig {
 			extern "C" {
 			    #[link_name = stringify!(#link_name)]
-			    fn __func #fn_generics (#c_decl_inputs) -> *mut #rt;
+			    fn __func #fn_generics (#c_decl_inputs) -> *mut #inside_t;
 			}
 			unsafe {
-			    #rs_rt {
-				ptr: __func(#c_call_inputs),
-				_pd: PhantomData,
-			    }
+			    let ptr = __func(#c_call_inputs);
+			    #ptr_name::from_raw(ptr)
 			}
 		    }
 		}
@@ -290,7 +285,45 @@ fn parse_fn(attrs: &[syn::Attribute], vis: &syn::Visibility, sig: &syn::Signatur
 		},
 	}
     } else {
-	unimplemented!("unsafety unsupported!")
+	match ret_type {
+	    ReturnType::Object(rt) =>
+		quote!{
+		    #vis #sig {
+			extern "C" {
+			    #[link_name = stringify!(#link_name)]
+			    fn __func #fn_generics (#c_decl_inputs __ret: *mut #rt);
+			}
+			let mut __ret = std::mem::MaybeUninit::<#rt>::uninit();
+			let mut __ret_ptr = __ret.as_mut_ptr();
+			__func (#c_call_inputs __ret_ptr);
+			__ret.assume_init()
+		    }
+		},
+
+	    ReturnType::Atomic(rt) =>
+		quote!{
+		    #vis #sig {
+			extern "C" {
+			    #[link_name = stringify!(#link_name)]
+			    fn __func #fn_generics (#c_decl_inputs) -> #rt;
+			}
+			__func(#c_call_inputs)
+		    }
+		},
+
+	    ReturnType::NewPtr(_) => todo!(),
+
+	    ReturnType::None =>
+		quote!{
+		    #vis #sig {
+			extern "C" {
+			    #[link_name = stringify!(#link_name)]
+			    fn __func #fn_generics (#c_decl_inputs);
+			}
+			__func(#c_call_inputs)
+		    }
+		},
+	}
     };
 
     Ok(t)

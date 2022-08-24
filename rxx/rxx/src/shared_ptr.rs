@@ -149,7 +149,7 @@ macro_rules! genrs_shared_ptr {
             impl $crate::SharedPtrTarget for $tp {
             unsafe fn __drop(this: &mut SharedPtr<$tp>) {
                 extern "C" {
-                #[link_name=stringify!([<$link_name _delete>])]
+                #[link_name=stringify!([<$link_name _destroy>])]
                 fn func(this: &mut SharedPtr<$tp>);
                 }
                 func(this);
