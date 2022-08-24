@@ -265,8 +265,7 @@ fn parse_fn(attrs: &[syn::Attribute], vis: &syn::Visibility, sig: &syn::Signatur
 			    fn __func #fn_generics (#c_decl_inputs) -> *mut #inside_t;
 			}
 			unsafe {
-			    let ptr = __func(#c_call_inputs);
-			    #ptr_name::from_raw(ptr)
+			    #ptr_name::from_raw(__func(#c_call_inputs))
 			}
 		    }
 		}

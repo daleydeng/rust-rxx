@@ -1,4 +1,4 @@
-#![allow(incomplete_features, non_camel_case_types, non_snake_case)]
+#![allow(incomplete_features, non_camel_case_types, non_snake_case, clippy::identity_op)]
 #![feature(generic_const_exprs, core_ffi_c, pin_macro)]
 
 extern crate nalgebra as na;

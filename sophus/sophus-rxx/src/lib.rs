@@ -1,6 +1,5 @@
 use std::ops::Mul;
 use num::traits::Float;
-use rxx::*;
 use eigen_rxx::*;
 
 #[repr(C)]
@@ -51,7 +50,7 @@ rxx_macro::genrs_fn!(
     impl Mul for SO2d {
 	type Output = Self;
 	fn mul(self, rhs: Self) -> Self::Output {
-	    &self * &rhs
+	    (&self).mul(&rhs)
 	}
     }
 
@@ -64,7 +63,7 @@ rxx_macro::genrs_fn!(
     impl Mul<Vector2d> for SO2d {
 	type Output = Vector2d;
 	fn mul(self, rhs: Self::Output) -> Self::Output {
-	    &self * &rhs
+	    (&self).mul(&rhs)
 	}
     }
 
@@ -77,7 +76,7 @@ rxx_macro::genrs_fn!(
     impl Mul<Vector3d> for SO2d {
 	type Output = Vector3d;
 	fn mul(self, rhs: Self::Output) -> Self::Output {
-	    &self * &rhs
+	    (&self).mul(&rhs)
 	}
     }
 

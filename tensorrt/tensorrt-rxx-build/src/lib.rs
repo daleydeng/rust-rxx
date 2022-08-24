@@ -15,7 +15,7 @@ pub fn genc_fns() -> Vec<String> {
     let mut out = vec![];
     let lp = NAME;
 
-    for cls in ["ILogger", "IBuilder"] {
+    for cls in ["ILogger", "IBuilder", "INetworkDefinition", "IBuilderConfig"] {
 	out.push(genc_destroy(&format!("{lp}_{cls}_delete"), cls));
     }
 
@@ -56,6 +56,32 @@ pub fn genc_fns() -> Vec<String> {
 	    ..default()
 	}
     ));
+
+    let cls = "IBuilder";
+    out.push(genc_fn(
+	&format!("{lp}_{cls}_createNetworkV2"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::createNetworkV2",
+	    is_mut: true,
+	    ret_type: ReturnType::Atomic("INetworkDefinition*"),
+	    args: &[
+		("NetworkDefinitionCreationFlags", "flags"),
+	    ],
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{lp}_{cls}_createBuilderConfig"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::createBuilderConfig",
+	    is_mut: true,
+	    ret_type: ReturnType::Atomic("IBuilderConfig*"),
+	    ..default()
+	}
+    ));
+
     out
 }
 

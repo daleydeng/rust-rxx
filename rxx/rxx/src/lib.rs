@@ -1,8 +1,8 @@
 #![allow(clippy::missing_safety_doc)]
 #![feature(associated_type_defaults)]
 
-pub mod pointer;
-pub use pointer::*;
+pub mod cxx_pointer;
+pub use cxx_pointer::*;
 
 pub mod unique_ptr;
 pub use unique_ptr::*;
@@ -82,7 +82,7 @@ mod tests {
 	}
 
 	#[ffi(link_name = "rxx_dummy_i64_new", new_ptr)]
-	pub fn dummy_i64_new() -> Pointer<i64> {}
+	pub fn dummy_i64_new() -> CxxPointer<i64> {}
 
     );
 

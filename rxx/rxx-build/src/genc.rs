@@ -220,10 +220,8 @@ pub fn genc_fn(link_name: &str, fn_sig: FnSig) -> String {
         if fn_sig.cls.is_some() {
             s_decl_link_args.insert_str(0, ", ");
         }
-    } else {
-        if fn_sig.ret_type.is_object() && fn_sig.cls.is_some() {
-            s_decl_link_args = ", ".to_string();
-        }
+    } else if fn_sig.ret_type.is_object() && fn_sig.cls.is_some() {
+        s_decl_link_args = ", ".to_string();
     }
 
     match fn_sig.cls {

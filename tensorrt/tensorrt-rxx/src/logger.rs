@@ -31,37 +31,38 @@ impl Default for RustLogger {
 }
 
 impl RustLogger {
-    pub extern "C" fn log(&mut self, severity: Severity, msg: *const c_char) {
+    /// # Safety
+    pub unsafe extern "C" fn log_callback(&mut self, severity: Severity, msg: *const c_char) {
 	if severity as i32 > self.severity as i32 {
 	    return;
 	}
-	self.last_msg = unsafe { CStr::from_ptr(msg) }.to_string_lossy().into_owned();
+	self.last_msg = CStr::from_ptr(msg).to_string_lossy().into_owned();
     }
 }
 
-pub type LogFnType = extern "C" fn(logger: &mut RustLogger, severity: Severity, msg: *const c_char);
+pub type LogFnType = unsafe extern "C" fn(logger: &mut RustLogger, severity: Severity, msg: *const c_char);
 
-pub fn create_rust_logger<'a>(
-    logger: &'a mut RustLogger,
+pub fn create_rust_logger(
+    logger: &mut RustLogger,
     log_fn: LogFnType,
-) -> Pointer<ILogger<'a>> {
+) -> CxxPointer<ILogger> {
     extern "C" {
         #[link_name = "tensorrt_rxx_RustLogger_create"]
         fn __func<'a>(logger: *mut (), log_fn: *const ()) -> *mut ILogger<'a>;
     }
     unsafe {
 	let ptr = __func(logger as *mut RustLogger as *mut(), log_fn as *const ());
-	Pointer::from_raw(ptr)
+	CxxPointer::from_raw(ptr)
     }
 }
 
 
 genrs_fn!(
     #[ffi(link_name="tensorrt_rxx_log")]
-    pub fn c_log(logger: &mut ILogger, severity: Severity, msg: *const c_char) {}
+    unsafe fn c_log(logger: &mut ILogger, severity: Severity, msg: *const c_char) {}
 );
 
 pub fn log(logger: &mut ILogger, severity: Severity, msg: &str) {
     let msg = CString::new(msg).unwrap();
-    c_log(logger, severity, msg.as_ptr());
+    unsafe { c_log(logger, severity, msg.as_ptr()) };
 }

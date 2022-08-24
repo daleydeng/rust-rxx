@@ -1,3 +1,4 @@
+#![allow(unused)]
 // struct Dummy<'a> {}
 use std::{ops::Mul, marker::PhantomData};
 

@@ -3,17 +3,17 @@ use core::marker::PhantomData;
 use core::ops::{Deref, DerefMut};
 use core::pin::Pin;
 
-pub trait PointerDrop {
+pub trait CxxPointerDrop {
     unsafe fn __drop(&mut self) {}
 }
 
 #[repr(C)]
-pub struct Pointer<T: PointerDrop> {
+pub struct CxxPointer<T: CxxPointerDrop> {
     pub ptr: *mut T,
     pub _pd: PhantomData<T>,
 }
 
-impl<T: PointerDrop> Default for Pointer<T> {
+impl<T: CxxPointerDrop> Default for CxxPointer<T> {
     fn default() -> Self {
 	Self {
 	    ptr: std::ptr::null_mut(),
@@ -21,13 +21,13 @@ impl<T: PointerDrop> Default for Pointer<T> {
 	}
     }
 }
-impl<T: PointerDrop> Pointer<T> {
+impl<T: CxxPointerDrop> CxxPointer<T> {
     pub fn get_ptr(&self) -> *const T {
         self.ptr as *const T
     }
 
     pub fn null() -> Self {
-        Pointer {
+        CxxPointer {
             ptr: std::ptr::null_mut(),
 	    ..Default::default()
         }
@@ -80,10 +80,10 @@ impl<T: PointerDrop> Pointer<T> {
 
 }
 
-unsafe impl<T> Send for Pointer<T> where T: Send + PointerDrop {}
-unsafe impl<T> Sync for Pointer<T> where T: Sync + PointerDrop {}
+unsafe impl<T> Send for CxxPointer<T> where T: Send + CxxPointerDrop {}
+unsafe impl<T> Sync for CxxPointer<T> where T: Sync + CxxPointerDrop {}
 
-impl<T: PointerDrop> Deref for Pointer<T> {
+impl<T: CxxPointerDrop> Deref for CxxPointer<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -97,7 +97,7 @@ impl<T: PointerDrop> Deref for Pointer<T> {
     }
 }
 
-impl<T: Unpin + PointerDrop> DerefMut for Pointer<T> {
+impl<T: Unpin + CxxPointerDrop> DerefMut for CxxPointer<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         match self.as_mut() {
             Some(target) => target,
@@ -109,7 +109,7 @@ impl<T: Unpin + PointerDrop> DerefMut for Pointer<T> {
     }
 }
 
-impl<T: PointerDrop + Debug> Debug for Pointer<T> {
+impl<T: CxxPointerDrop + Debug> Debug for CxxPointer<T> {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match self.as_ref() {
             None => formatter.write_str("nullptr"),
@@ -118,7 +118,7 @@ impl<T: PointerDrop + Debug> Debug for Pointer<T> {
     }
 }
 
-impl<T: PointerDrop + Display> Display for Pointer<T> {
+impl<T: CxxPointerDrop + Display> Display for CxxPointer<T> {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match self.as_ref() {
             None => formatter.write_str("nullptr"),
@@ -127,7 +127,7 @@ impl<T: PointerDrop + Display> Display for Pointer<T> {
     }
 }
 
-impl<T: PointerDrop> Drop for Pointer<T> {
+impl<T: CxxPointerDrop> Drop for CxxPointer<T> {
     fn drop(&mut self) {
 	unsafe { T::__drop(&mut *self.ptr) }
     }
@@ -136,7 +136,7 @@ impl<T: PointerDrop> Drop for Pointer<T> {
 #[macro_export]
 macro_rules! genrs_pointer_drop {
     ($link_name:ident, $tp:ty) => {
-        impl PointerDrop for $tp {
+        impl $crate::CxxPointerDrop for $tp {
 	    unsafe fn __drop(&mut self) {
                 extern "C" {
 		    #[link_name=stringify!($link_name)]

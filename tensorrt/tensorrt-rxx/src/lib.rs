@@ -1,4 +1,6 @@
 #![feature(default_free_fn)]
+pub use tensorrt_sys::nvinfer1 as ffi;
+
 pub mod logger;
 pub use logger::*;
 
@@ -15,7 +17,7 @@ mod tests {
 	let mut rust_logger = Default::default();
 	// rust cant infer here, need drop logger first, don't know why
 	{
-	    let mut logger = create_rust_logger(&mut rust_logger, RustLogger::log);
+	    let mut logger = create_rust_logger(&mut rust_logger, RustLogger::log_callback);
 
 	    log(&mut logger, Severity::kINFO, msg);
 	}
@@ -25,8 +27,9 @@ mod tests {
     #[test]
     fn test_builder() {
 	let mut rust_logger = Default::default();
-	let mut logger = create_rust_logger(&mut rust_logger, RustLogger::log);
-	let builder = create_infer_builder(&mut logger);
+	let mut logger = create_rust_logger(&mut rust_logger, RustLogger::log_callback);
+	let mut builder = create_infer_builder(&mut logger);
+	let network = builder.create_network_v2(ffi::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
     }
 
 }
