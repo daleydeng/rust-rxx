@@ -25,6 +25,7 @@ using namespace eigen_rxx;
 
 #[allow(non_snake_case)]
 fn add_fns_Map(lp: &str, cls: &str, out: &mut Vec<String>) {
+
     out.push(genc_fn(
         &format!("{lp}_MapMut_{cls}_new"),
         FnSig {

@@ -1,5 +1,3 @@
-// we need 2.17 conda sysroot due to libMvCameraControl need 2.15 glibc
-
 use std::env;
 use std::fs::{self, File};
 use std::io::{self, BufRead};
@@ -11,25 +9,26 @@ use regex::Regex;
 
 fn extract_enum_names(fname: &str) -> Result<HashSet<String>>{
     lazy_static!{
-	static ref RE: Regex = Regex::new(r"^enum class (\w+)\s*:").unwrap();
+	static ref RE: Regex = Regex::new(r"^enum class (\w+)\s*:").expect("regex creation failed!");
     }
     let mut out = HashSet::new();
     let file = File::open(fname)?;
     for l in io::BufReader::new(file).lines() {
-	let l = l.unwrap();
+	let l = l?;
 	let cap = RE.captures(&l);
-	if cap.is_none() {
+	let Some(cap) = cap else {
 	    continue;
-	}
-	let cap = cap.unwrap();
+	};
 	out.insert(cap[1].into());
     }
     Ok(out)
 }
 
 fn main() -> Result<()> {
-    let prefix =
-        PathBuf::from(env::var("PREFIX").unwrap_or_else(|_| env::var("CONDA_PREFIX").unwrap()));
+    let prefix = env::var("PREFIX").or_else(|_| env::var("CONDA_PREFIX"));
+    let s_prefix = prefix?;
+    env::set_var("LIBCLANG_PATH", format!("{s_prefix}/lib"));
+    let prefix = PathBuf::from(s_prefix);
 
     let inc_dir = prefix.join("include");
 
@@ -39,24 +38,24 @@ fn main() -> Result<()> {
 	    non_exhaustive: false
 	})
         .enable_cxx_namespaces()
-        .clang_args(&[&format!("-I{}", inc_dir.to_str().unwrap()), "-x", "c++"])
+        .clang_args(&[&format!("-I{}", inc_dir.to_str().expect("to_str failed")), "-x", "c++"])
 	;
 
     for f in [
 	"NvInferVersion.h",
 	"NvInferLegacyDims.h"
     ] {
-	builder = builder.allowlist_file(inc_dir.join(f).to_str().unwrap());
+	builder = builder.allowlist_file(inc_dir.join(f).to_str().expect("to_str failed"));
     }
 
     for f in ["NvInfer.h", "NvInferRuntime.h", "NvInferRuntimeCommon.h", "NvOnnxParser.h"] {
-	for n in extract_enum_names(inc_dir.join(f).to_str().unwrap())? {
+	for n in extract_enum_names(inc_dir.join(f).to_str().expect("to_str failed"))? {
 	    builder = builder.allowlist_type(format!("nvinfer1::{n}"));
 	}
     }
 
     for f in ["NvOnnxParser.h"] {
-	for n in extract_enum_names(inc_dir.join(f).to_str().unwrap())? {
+	for n in extract_enum_names(inc_dir.join(f).to_str().expect("to_str failed"))? {
 	    builder = builder.allowlist_type(format!("nvonnxparser::{n}"));
 	}
     }
@@ -70,7 +69,7 @@ fn main() -> Result<()> {
     }
 
     let bindings = builder.generate()?;
-    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let out_path = PathBuf::from(env::var("OUT_DIR").expect("ENV::OUT_DIR not exists!"));
     let bindings_f = out_path.join("bindings.rs");
     bindings
         .write_to_file(&bindings_f)

@@ -1,12 +1,13 @@
 #![feature(default_free_fn)]
-use std::path::{Path, PathBuf};
-use std::io::Write;
-use std::fs;
-use std::sync::Once;
-use std::collections::HashSet;
 use anyhow::Result;
 use handlebars::Handlebars;
+use serde::Serialize;
 use serde_json::json;
+use std::collections::HashSet;
+use std::fs;
+use std::io::Write;
+use std::path::{Path, PathBuf};
+use std::sync::Once;
 
 pub mod genc;
 pub use genc::*;
@@ -18,10 +19,10 @@ const C_SRC: &str = include_str!("../csrc/wrapper.cc");
 
 pub fn dump_file_once(fname: &Path, source: &str, once: &Once) {
     let inc_dir = fname.parent().unwrap();
-    fs::create_dir_all(&inc_dir).unwrap();
+    fs::create_dir_all(inc_dir).unwrap();
     once.call_once(|| {
-	let mut file = fs::File::create(&fname).unwrap();
-	file.write_all(source.as_bytes()).unwrap();
+        let mut file = fs::File::create(fname).unwrap();
+        file.write_all(source.as_bytes()).unwrap();
     });
 }
 
@@ -35,7 +36,7 @@ pub fn dump_headers_rxx(inc_dir: &Path) -> Result<HashSet<PathBuf>> {
     Ok(HashSet::from([inc_dir]))
 }
 
-pub fn render_c_template(tpl: &str, items: &[&str]) -> Result<String> {
+pub fn render_c_template(tpl: &str, items: impl Serialize) -> Result<String> {
     let hb = Handlebars::new();
 
     Ok(hb.render_template(
@@ -46,7 +47,7 @@ pub fn render_c_template(tpl: &str, items: &[&str]) -> Result<String> {
     )?)
 }
 
-pub fn genc_file_rxx(items: &[&str]) -> Result<String> {
+pub fn genc_file_rxx(items: impl Serialize) -> Result<String> {
     let tpl = r#"
 #include <rxx/wrapper.hh>
 
@@ -75,7 +76,8 @@ pub fn dump_sources_rxx(src_dir: &Path) -> Result<HashSet<PathBuf>> {
             "std::weak_ptr<std::string>",
             "std::shared_ptr<std::string>",
         ),
-    ]).unwrap();
+    ])
+    .unwrap();
 
     dump_file_once(&ffi_f, &ffi_code, &ONCE_FFI);
     Ok(HashSet::from([wrapper_f, ffi_f]))
@@ -83,8 +85,8 @@ pub fn dump_sources_rxx(src_dir: &Path) -> Result<HashSet<PathBuf>> {
 
 #[cfg(test)]
 mod tests {
-    use std::default::default;
     use super::*;
+    use std::default::default;
 
     #[test]
     fn test_fn() {
@@ -208,11 +210,15 @@ extern "C" void rxx_vector_string_pop_back(std::vector<std::string> &self, std::
 }
 "#.trim_start());
 
-	let s = genc_get_val("get_global", ReturnType::Atomic("int"), "test");
-	assert_eq!(s, r#"
+        let s = genc_get_val("get_global", ReturnType::Atomic("int"), "test");
+        assert_eq!(
+            s,
+            r#"
 extern "C" int get_global() noexcept {
     return test;
 }
-"#.trim_start());
+"#
+            .trim_start()
+        );
     }
 }

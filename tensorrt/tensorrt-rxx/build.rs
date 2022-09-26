@@ -1,17 +1,14 @@
+use anyhow::Result;
+use std::collections::HashSet;
 use std::env;
 use std::path::PathBuf;
-use std::collections::HashSet;
-use anyhow::Result;
 use tensorrt_rxx_build::*;
 
 fn main() -> Result<()> {
     let prefix = PathBuf::from(env::var("CONDA_PREFIX")?);
     let out_dir = PathBuf::from(env::var("OUT_DIR")?);
 
-    let inc_dirs = HashSet::from([
-        out_dir.join("include"),
-	prefix.join("include"),
-    ]);
+    let inc_dirs = HashSet::from([out_dir.join("include"), prefix.join("include")]);
 
     let mut src_files = HashSet::new();
 
@@ -23,8 +20,8 @@ fn main() -> Result<()> {
         .files(&src_files)
         .cpp(true)
         .flag_if_supported("-std=c++14")
-	.flag("-Wno-deprecated-declarations")
-	.flag("-Wno-unused-parameter")
+        .flag("-Wno-deprecated-declarations")
+        .flag("-Wno-unused-parameter")
         .includes(&inc_dirs)
         .compile("tensorrt_rxx");
 

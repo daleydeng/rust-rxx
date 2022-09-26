@@ -140,6 +140,7 @@ lazy_static::lazy_static! {
     static ref HANDLEBARS: Handlebars<'static> = {
         let mut hb = Handlebars::new();
         hb.set_strict_mode(true);
+
         for (k, v) in &[
             ("tpl_ret_object_fn", TPL_RET_OBJECT_FN),
             ("tpl_ret_atomic_fn", TPL_RET_ATOMIC_FN),
@@ -150,8 +151,8 @@ lazy_static::lazy_static! {
             ("tpl_ret_object_memfn_mut", TPL_RET_OBJECT_MEMFN_MUT),
             ("tpl_ret_atomic_memfn_mut", TPL_RET_ATOMIC_MEMFN_MUT),
             ("tpl_void_memfn_mut", TPL_VOID_MEMFN_MUT),
-	    ("tpl_get_object_val", TPL_GET_OBJECT_VAL),
-	    ("tpl_get_atomic_val", TPL_GET_ATOMIC_VAL),
+        ("tpl_get_object_val", TPL_GET_OBJECT_VAL),
+        ("tpl_get_atomic_val", TPL_GET_ATOMIC_VAL),
             ("tpl_unique_ptr", TPL_UNIQUE_PTR),
             ("tpl_shared_ptr", TPL_SHARED_PTR),
             ("tpl_weak_ptr", TPL_WEAK_PTR),
@@ -284,42 +285,52 @@ pub fn genc_fn(link_name: &str, fn_sig: FnSig) -> String {
 }
 
 pub fn genc_delete(link_name: &str, c_tp: &str) -> String {
-    format!(r#"
+    format!(
+        r#"
 extern "C" void {link_name}({c_tp} *ptr) noexcept {{
     delete ptr;
 }}
-"#).trim_start().into()
+"#
+    )
+    .trim_start()
+    .into()
 }
 
 pub fn genc_destroy(link_name: &str, c_tp: &str) -> String {
-    format!(r#"
+    format!(
+        r#"
 extern "C" void {link_name}({c_tp} &self) noexcept {{
     self.~{c_tp}();
 }}
-"#).trim_start().into()
+"#
+    )
+    .trim_start()
+    .into()
 }
 
 pub fn genc_get_val<'a>(link_name: &str, ret_type: ReturnType<'a>, c_tp: &str) -> String {
     match ret_type {
-	ReturnType::Object(v) =>
-	    HANDLEBARS.render(
-		"tpl_get_object_val",
-		&json!({
-		    "name": link_name,
-		    "ret_type": v,
-		    "c_tp": c_tp,
-		})
-	    ).unwrap(),
-	ReturnType::Atomic(v) =>
-	    HANDLEBARS.render(
-		"tpl_get_atomic_val",
-		&json!({
-		    "name": link_name,
-		    "ret_type": v,
-		    "c_tp": c_tp,
-		})
-	    ).unwrap(),
-	ReturnType::None => panic!("return type cannot be None"),
+        ReturnType::Object(v) => HANDLEBARS
+            .render(
+                "tpl_get_object_val",
+                &json!({
+                    "name": link_name,
+                    "ret_type": v,
+                    "c_tp": c_tp,
+                }),
+            )
+            .unwrap(),
+        ReturnType::Atomic(v) => HANDLEBARS
+            .render(
+                "tpl_get_atomic_val",
+                &json!({
+                    "name": link_name,
+                    "ret_type": v,
+                    "c_tp": c_tp,
+                }),
+            )
+            .unwrap(),
+        ReturnType::None => panic!("return type cannot be None"),
     }
 }
 

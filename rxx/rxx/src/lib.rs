@@ -32,7 +32,7 @@ genrs_weak_ptr!(rxx_weak_string, crate::CxxString);
 mod tests {
     use std::marker::PhantomData;
     use std::mem::MaybeUninit;
-
+    use std::collections::HashMap;
     use super::*;
 
     rxx_macro::genrs_fn!(

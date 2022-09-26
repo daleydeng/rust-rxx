@@ -10,17 +10,180 @@ const C_HDR: &str = include_str!("../include/wrapper.hh");
 const C_SRC: &str = include_str!("../csrc/wrapper.cc");
 
 const NAME: &str = "tensorrt_rxx";
+const LP: &str = NAME;
+
+fn gen_builder_config(out: &mut Vec<String>) {
+    let cls = "IBuilderConfig";
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_clearFlag"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::clearFlag",
+	    is_mut: true,
+	    args: &[
+		("BuilderFlag", "flag"),
+	    ],
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_setFlag"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::setFlag",
+	    is_mut: true,
+	    args: &[
+		("BuilderFlag", "flag"),
+	    ],
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_getFlag"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::getFlag",
+	    ret_type: ReturnType::Atomic("bool"),
+	    args: &[
+		("BuilderFlag", "flag"),
+	    ],
+	    ..default()
+	}
+    ));
+}
+
+fn gen_tensor(out: &mut Vec<String>) {
+    let cls = "ITensor";
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_dynamicRangeIsSet"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::dynamicRangeIsSet",
+	    ret_type: ReturnType::Atomic("bool"),
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_setDynamicRange"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::setDynamicRange",
+	    is_mut: true,
+	    ret_type: ReturnType::Atomic("bool"),
+	    args: &[
+		("float", "min"),
+		("float", "max"),
+	    ],
+	}
+    ));
+}
+
+fn gen_layer(out: &mut Vec<String>) {
+    let cls = "ILayer";
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_getNbInputs"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::getNbInputs",
+	    ret_type: ReturnType::Atomic("int32_t"),
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_getInput"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::getInput",
+	    ret_type: ReturnType::Atomic("ITensor*"),
+	    args: &[
+		("int32_t", "index"),
+	    ],
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_getNbOutputs"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::getNbOutputs",
+	    ret_type: ReturnType::Atomic("int32_t"),
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_getOutput"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::getOutput",
+	    ret_type: ReturnType::Atomic("ITensor*"),
+	    args: &[
+		("int32_t", "index"),
+	    ],
+	    ..default()
+	}
+    ));
+
+}
+
+fn gen_network_definition(out: &mut Vec<String>) {
+    let cls = "INetworkDefinition";
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_getNbLayers"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::getNbLayers",
+	    ret_type: ReturnType::Atomic("int32_t"),
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_getLayer"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::getLayer",
+	    ret_type: ReturnType::Atomic("ILayer*"),
+	    args: &[
+		("int32_t", "index"),
+	    ],
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_getNbInputs"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::getNbInputs",
+	    ret_type: ReturnType::Atomic("int32_t"),
+	    ..default()
+	}
+    ));
+
+}
 
 pub fn genc_fns() -> Vec<String> {
     let mut out = vec![];
-    let lp = NAME;
 
     for cls in ["ILogger", "IBuilder", "INetworkDefinition", "IBuilderConfig", "OnnxIParser"] {
-	out.push(genc_delete(&format!("{lp}_{cls}_delete"), cls));
+	out.push(genc_delete(&format!("{LP}_{cls}_delete"), cls));
     }
 
+    gen_builder_config(&mut out);
+    gen_network_definition(&mut out);
+    gen_layer(&mut out);
+    gen_tensor(&mut out);
+
     out.push(genc_fn(
-	&format!("{lp}_RustLogger_create"),
+	&format!("{LP}_RustLogger_create"),
 	FnSig {
 	    c_fn: "RustLogger::create",
 	    ret_type: ReturnType::Atomic("ILogger*"),
@@ -33,7 +196,7 @@ pub fn genc_fns() -> Vec<String> {
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_log"),
+	&format!("{LP}_log"),
 	FnSig {
 	    c_fn: "log",
 	    args: &[
@@ -46,7 +209,7 @@ pub fn genc_fns() -> Vec<String> {
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_createOnnxParser"),
+	&format!("{LP}_createOnnxParser"),
 	FnSig {
 	    c_fn: "nvonnxparser::createParser",
 	    ret_type: ReturnType::Atomic("nvonnxparser::IParser*"),
@@ -59,7 +222,7 @@ pub fn genc_fns() -> Vec<String> {
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_createInferBuilder"),
+	&format!("{LP}_createInferBuilder"),
 	FnSig {
 	    c_fn: "createInferBuilder",
 	    ret_type: ReturnType::Atomic("IBuilder*"),
@@ -72,7 +235,7 @@ pub fn genc_fns() -> Vec<String> {
 
     let cls = "IBuilder";
     out.push(genc_fn(
-	&format!("{lp}_{cls}_createNetworkV2"),
+	&format!("{LP}_{cls}_createNetworkV2"),
 	FnSig {
 	    cls: Some(cls),
 	    c_fn: "&$C::createNetworkV2",
@@ -84,8 +247,10 @@ pub fn genc_fns() -> Vec<String> {
 	}
     ));
 
+
+    let cls = "IBuilder";
     out.push(genc_fn(
-	&format!("{lp}_{cls}_createBuilderConfig"),
+	&format!("{LP}_{cls}_createBuilderConfig"),
 	FnSig {
 	    cls: Some(cls),
 	    c_fn: "&$C::createBuilderConfig",
@@ -97,7 +262,7 @@ pub fn genc_fns() -> Vec<String> {
 
     let cls = "OnnxIParser";
     out.push(genc_fn(
-	&format!("{lp}_{cls}_parseFromFile"),
+	&format!("{LP}_{cls}_parseFromFile"),
 	FnSig {
 	    cls: Some(cls),
 	    c_fn: "&$C::parseFromFile",
@@ -111,7 +276,7 @@ pub fn genc_fns() -> Vec<String> {
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_{cls}_clearErrors"),
+	&format!("{LP}_{cls}_clearErrors"),
 	FnSig {
 	    cls: Some(cls),
 	    c_fn: "&$C::clearErrors",
@@ -121,7 +286,7 @@ pub fn genc_fns() -> Vec<String> {
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_{cls}_getNbErrors"),
+	&format!("{LP}_{cls}_getNbErrors"),
 	FnSig {
 	    cls: Some(cls),
 	    c_fn: "&$C::getNbErrors",
@@ -131,7 +296,7 @@ pub fn genc_fns() -> Vec<String> {
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_{cls}_getError"),
+	&format!("{LP}_{cls}_getError"),
 	FnSig {
 	    cls: Some(cls),
 	    c_fn: "&$C::getError",

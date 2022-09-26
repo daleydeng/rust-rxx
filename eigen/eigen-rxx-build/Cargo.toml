@@ -1,5 +1,3 @@
-cargo-features = ["workspace-inheritance"]
-
 [package]
 name = "eigen-rxx-build"
 version = "0.1.0"
@@ -9,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 rxx-build.workspace = true
+rxx-macro.workspace = true
 anyhow = "1"

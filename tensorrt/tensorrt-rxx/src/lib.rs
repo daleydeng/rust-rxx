@@ -27,34 +27,19 @@ pub enum TensorrtError {
 
 #[cfg(test)]
 mod tests {
-    use std::path::{self, Path};
     use super::*;
+    use std::path::{self, Path};
 
     #[test]
     fn test_callback() {
-	let msg = "hello world";
-	let mut rust_logger = Default::default();
-	// rust cant infer here, need drop logger first, don't know why
-	{
-	    let mut logger = create_rust_logger(&mut rust_logger, RustLogger::log_callback);
+        let msg = "hello world";
+        let mut rust_logger = Default::default();
+        // rust cant infer here, need drop logger first, don't know why
+        {
+            let mut logger = create_rust_logger(&mut rust_logger, RustLogger::log_callback);
 
-	    log(&mut logger, Severity::kINFO, msg);
-	}
-	assert_eq!(rust_logger.last_msg, msg);
+            log(&mut logger, Severity::kINFO, msg);
+        }
+        assert_eq!(rust_logger.last_msg, msg);
     }
-
-    #[test]
-    fn test_builder() {
-	let mut rust_logger = Default::default();
-	let mut logger = create_rust_logger(&mut rust_logger, RustLogger::log_callback);
-	let mut builder = create_infer_builder(&mut logger);
-	let mut network = builder.create_network_v2(1u32 << ffi::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH as i32);
-	let config = builder.create_builder_config();
-	let mut parser = create_onnx_parser(&mut network, &mut logger);
-	let p = Path::new("data/mnist.onnx");
-
-	eprintln!("path {:?}", path::absolute(p).unwrap());
-	parser.parse_from_file(p, Severity::kVERBOSE).expect("parse error");
-    }
-
 }
