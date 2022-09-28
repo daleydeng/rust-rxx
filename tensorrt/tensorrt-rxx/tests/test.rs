@@ -1,11 +1,9 @@
 #![feature(slice_range)]
 use rstest::rstest;
-use std::{
-    path::{self, Path},
-    slice::range,
-};
+use std::path::Path;
 use tensorrt_rxx::ffi::BuilderFlag::*;
 use tensorrt_rxx::*;
+use cuda_rs::*;
 
 fn set_all_dynamic_ranges(network: &mut INetworkDefinition, in_range: f32, out_range: f32)
 {
@@ -93,4 +91,21 @@ fn test_builder(#[case] use_fp16: bool, #[case] use_int8: bool) {
 
     let use_dla_core = 1;
     enable_dla(&builder, &mut config, use_dla_core, true);
+
+    let profile_stream = StreamPtr::create_with_flags(true);
+    config.set_profile_stream(&profile_stream);
+
+    let plan = builder.build_serialized_network(&mut network, &mut config);
+
+    let mut runtime = create_infer_runtime(&mut logger);
+
+    let engine = runtime.deserialize_cuda_engine_host_memory(&plan);
+
+    assert_eq!(network.get_nb_inputs(), 1);
+    let input_dims = network.get_input(0).unwrap().get_dimensions();
+    assert_eq!(input_dims.nbDims, 4);
+
+    assert_eq!(network.get_nb_outputs(), 1);
+    let output_dims = network.get_output(0).unwrap().get_dimensions();
+    assert_eq!(output_dims.nbDims, 2);
 }

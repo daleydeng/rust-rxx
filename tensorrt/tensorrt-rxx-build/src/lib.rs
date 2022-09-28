@@ -96,6 +96,28 @@ fn gen_builder_config(out: &mut Vec<String>) {
 	    ..default()
 	}
     ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_set_profile_stream"),
+	FnSig {
+	    cls: Some(cls),
+	    is_mut: true,
+	    c_fn: "&$C::setProfileStream",
+	    args: &[("const cudaStream_t", "stream")],
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_get_profile_stream"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::getProfileStream",
+	    ret_type: ReturnType::Atomic("cudaStream_t"),
+	    ..default()
+	}
+    ));
+
 }
 
 fn gen_tensor(out: &mut Vec<String>) {
@@ -124,6 +146,30 @@ fn gen_tensor(out: &mut Vec<String>) {
 	    ],
 	}
     ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_get_dimensions"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::getDimensions",
+	    ret_type: ReturnType::Atomic("Dims"),
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_set_dimensions"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::setDimensions",
+	    is_mut: true,
+	    args: &[
+		("Dims", "dimensions"),
+	    ],
+	    ..default()
+	}
+    ));
+
 }
 
 fn gen_layer(out: &mut Vec<String>) {
@@ -186,6 +232,39 @@ fn gen_layer(out: &mut Vec<String>) {
     ));
 }
 
+fn gen_host_memory(out: &mut Vec<String>) {
+    let cls = "IHostMemory";
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_data"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::data",
+	    ret_type: ReturnType::Atomic("void*"),
+	    ..default()
+	}
+    ));
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_size"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::size",
+	    ret_type: ReturnType::Atomic("size_t"),
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_type"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::type",
+	    ret_type: ReturnType::Atomic("DataType"),
+	    ..default()
+	}
+    ));
+}
+
 fn gen_network_definition(out: &mut Vec<String>) {
     let cls = "INetworkDefinition";
     out.push(genc_fn(
@@ -217,6 +296,42 @@ fn gen_network_definition(out: &mut Vec<String>) {
 	    cls: Some(cls),
 	    c_fn: "&$C::getNbInputs",
 	    ret_type: ReturnType::Atomic("int32_t"),
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_get_input"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::getInput",
+	    ret_type: ReturnType::Atomic("ITensor*"),
+	    args: &[
+		("int32_t", "index"),
+	    ],
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_get_nb_outputs"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::getNbOutputs",
+	    ret_type: ReturnType::Atomic("int32_t"),
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_get_output"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::getOutput",
+	    ret_type: ReturnType::Atomic("ITensor*"),
+	    args: &[
+		("int32_t", "index"),
+	    ],
 	    ..default()
 	}
     ));
@@ -258,19 +373,63 @@ fn gen_builder(out: &mut Vec<String>) {
 	    ..default()
 	}
     ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_build_serialized_network"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::buildSerializedNetwork",
+	    is_mut: true,
+	    ret_type: ReturnType::Atomic("IHostMemory*"),
+	    args: &[
+		("INetworkDefinition&", "network"),
+		("IBuilderConfig&", "config"),
+	    ]
+	}
+    ));
+}
+
+fn gen_runtime(out: &mut Vec<String>) {
+    let cls = "IRuntime";
+
+    out.push(genc_fn(
+	&format!("{LP}_create_infer_runtime"),
+	FnSig {
+	    c_fn: "createInferRuntime",
+	    args: &[("ILogger&", "logger")],
+	    ret_type: ReturnType::Atomic("IRuntime*"),
+            ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_deserialize_cuda_engine"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::deserializeCudaEngine",
+	    is_mut: true,
+	    ret_type: ReturnType::Atomic("ICudaEngine*"),
+	    args: &[
+		("void const*", "blob"),
+		("size_t", "size"),
+	    ],
+	}
+    ));
 }
 
 pub fn genc_fns() -> Vec<String> {
     let mut out = vec![];
 
-    for cls in ["ILogger", "IBuilder", "INetworkDefinition", "IBuilderConfig", "OnnxIParser"] {
+    for cls in ["IHostMemory", "ILogger", "IBuilder", "INetworkDefinition", "IBuilderConfig", "IRuntime", "ICudaEngine", "OnnxIParser"] {
 	out.push(genc_delete(&format!("{LP}_{cls}_delete"), cls));
     }
 
+    gen_host_memory(&mut out);
     gen_builder_config(&mut out);
     gen_network_definition(&mut out);
     gen_layer(&mut out);
     gen_tensor(&mut out);
+    gen_runtime(&mut out);
 
     out.push(genc_fn(
 	&format!("{LP}_RustLogger_create"),
@@ -312,7 +471,7 @@ pub fn genc_fns() -> Vec<String> {
     ));
 
     out.push(genc_fn(
-	&format!("{LP}_createInferBuilder"),
+	&format!("{LP}_create_infer_builder"),
 	FnSig {
 	    c_fn: "createInferBuilder",
 	    ret_type: ReturnType::Atomic("IBuilder*"),

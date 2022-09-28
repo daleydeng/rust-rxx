@@ -7,7 +7,7 @@ use std::path::Path;
 
 use tensorrt_sys::nvonnxparser as onnx_parser;
 
-impl_del!(OnnxIParser, onnx_parser::IParser);
+impl_raii_lt!(OnnxIParser, onnx_parser::IParser);
 
 #[repr(transparent)]
 pub struct IParserError<'a> {

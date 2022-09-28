@@ -28,7 +28,6 @@ pub enum TensorrtError {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::{self, Path};
 
     #[test]
     fn test_callback() {

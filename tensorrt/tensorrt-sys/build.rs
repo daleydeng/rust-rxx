@@ -63,6 +63,7 @@ fn main() -> Result<()> {
     for t in [
 	"nvinfer1::ILogger",
 	"nvinfer1::IBuilder",
+	"nvinfer1::IRuntime",
 	"nvonnxparser::IParser",
     ] {
 	builder = builder.allowlist_type(t);
@@ -77,6 +78,9 @@ fn main() -> Result<()> {
 
     fs::create_dir_all("gen")?;
     fs::copy(bindings_f, "gen/bindings.rs")?;
+
+    println!("cargo:rustc-link-lib=nvinfer");
+    println!("cargo:rustc-link-lib=nvonnxparser");
 
     Ok(())
 }

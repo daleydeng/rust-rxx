@@ -2,7 +2,7 @@ use crate::{get_attr, ReturnType};
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
 use std::collections::HashMap;
-use syn::spanned::Spanned;
+use syn::{spanned::Spanned, parse_quote};
 
 fn get_path_segment(t: &syn::Type) -> Option<&syn::PathSegment> {
     let syn::Type::Path(syn::TypePath {path: syn::Path{segments, ..}, ..}) = t else {
@@ -56,24 +56,29 @@ fn replace_type_dic(
     ty: &syn::Type,
     type_dic: &HashMap<syn::Type, Box<syn::Type>>,
 ) -> Box<syn::Type> {
+
+    use syn::Type::*;
+
     match ty {
-        syn::Type::Reference(v) => Box::new(syn::Type::Reference(syn::TypeReference {
+        Reference(v) => Box::new(Reference(syn::TypeReference {
             elem: replace_type_dic(&v.elem, type_dic),
             ..v.clone()
         })),
 
-        syn::Type::Ptr(v) => Box::new(syn::Type::Ptr(syn::TypePtr {
+        Ptr(v) => Box::new(Ptr(syn::TypePtr {
             elem: replace_type_dic(&v.elem, type_dic),
             ..v.clone()
         })),
 
-        syn::Type::Path(_) => {
+        Path(_) => {
             if let Some(t) = type_dic.get(&syn::parse_quote!(#ty)) {
                 t.clone()
             } else {
                 Box::new(ty.clone())
             }
         }
+
+	Tuple(_) => Box::new(ty.clone()),
         _ => unimplemented!("unsupported type replace {:?}", ty),
     }
 }
@@ -102,11 +107,15 @@ pub fn parse_fn(
         for i in meta_list.nested {
             match i {
                 syn::NestedMeta::Meta(syn::Meta::NameValue(m)) => {
-                    if m.path.get_ident().unwrap() == "link_name" {
-                        if let syn::Lit::Str(l) = m.lit {
-                            link_name = syn::Ident::new(&strfmt::strfmt(&l.value(), &tpl_vars).unwrap(), l.span());
-                        }
-                    }
+		    let key = m.path.get_ident().unwrap().to_string();
+		    let syn::Lit::Str(val) = m.lit else {
+			continue;
+		    };
+                    if key == "link_name" {
+			link_name = syn::Ident::new(&strfmt::strfmt(&val.value(), &tpl_vars).unwrap(), val.span());
+                    } else if key == "link_prefix" {
+			link_name = syn::Ident::new(&format!("{}{}", val.value(), link_name), link_name.span());
+		    }
                 }
                 syn::NestedMeta::Meta(syn::Meta::Path(p)) => {
                     if p.is_ident("atomic") {
@@ -340,8 +349,9 @@ pub fn parse_impl(item_impl: &syn::ItemImpl) -> syn::Result<TokenStream> {
         })
         .collect();
 
-    let mut type_dic = HashMap::new();
-    type_dic.insert(syn::parse_quote! {Self}, self_ty.clone());
+    let mut type_dic = HashMap::from([
+	(parse_quote!{Self}, self_ty.clone()),
+    ]);
 
     let tts = item_impl.items.iter().map(|i| match i {
         syn::ImplItem::Method(v) => {

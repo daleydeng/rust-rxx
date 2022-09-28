@@ -25,7 +25,5 @@ fn main() -> Result<()> {
         .includes(&inc_dirs)
         .compile("tensorrt_rxx");
 
-    println!("cargo:rustc-link-lib=nvinfer");
-    println!("cargo:rustc-link-lib=nvonnxparser");
     Ok(())
 }

@@ -11,6 +11,7 @@ paste = "1"
 rxx.workspace = true
 rxx-macro.workspace = true
 tensorrt-sys.workspace = true
+cuda-rs.workspace = true
 libc = "0.2"
 
 [build-dependencies]
