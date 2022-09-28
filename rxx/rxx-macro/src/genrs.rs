@@ -84,10 +84,19 @@ pub fn parse_fn(
     sig: &syn::Signature,
     type_dic: Option<&HashMap<syn::Type, Box<syn::Type>>>,
     self_ty: Option<(&syn::Type, &[&syn::Lifetime])>,
+    link_prefix: &str,
 ) -> syn::Result<TokenStream> {
     let fn_name = &sig.ident;
     let mut link_name = fn_name.clone();
     let mut ret_mode = ReturnType::Object(());
+
+    if !link_prefix.is_empty() {
+	link_name = syn::Ident::new(&format!("{}{}", link_prefix, link_name), link_name.span());
+    }
+
+    let tpl_vars = HashMap::from([
+	("LP".to_owned(), link_prefix),
+    ]);
 
     if let Some(meta_list) = get_attr(attrs)? {
         for i in meta_list.nested {
@@ -95,7 +104,7 @@ pub fn parse_fn(
                 syn::NestedMeta::Meta(syn::Meta::NameValue(m)) => {
                     if m.path.get_ident().unwrap() == "link_name" {
                         if let syn::Lit::Str(l) = m.lit {
-                            link_name = syn::Ident::new(&l.value(), l.span());
+                            link_name = syn::Ident::new(&strfmt::strfmt(&l.value(), &tpl_vars).unwrap(), l.span());
                         }
                     }
                 }
@@ -303,6 +312,23 @@ pub fn parse_fn(
 }
 
 pub fn parse_impl(item_impl: &syn::ItemImpl) -> syn::Result<TokenStream> {
+    let attrs = &item_impl.attrs;
+    let mut link_prefix = "".to_owned();
+    if let Some(meta_list) = get_attr(attrs)? {
+	for i in meta_list.nested {
+	    match i {
+                syn::NestedMeta::Meta(syn::Meta::NameValue(m)) => {
+                    if m.path.get_ident().unwrap() == "link_prefix" {
+                        if let syn::Lit::Str(l) = m.lit {
+                            link_prefix = l.value();
+                        }
+                    }
+                }
+		m => panic!("uncovered impl meta here {:?}", m),
+	    }
+	}
+    }
+
     let self_ty = &item_impl.self_ty;
     let self_lt: Vec<_> = item_impl
         .generics
@@ -326,6 +352,7 @@ pub fn parse_impl(item_impl: &syn::ItemImpl) -> syn::Result<TokenStream> {
                     &v.sig,
                     Some(&type_dic),
                     Some((self_ty, &self_lt)),
+		    &link_prefix,
                 )
                 .unwrap_or_else(syn::Error::into_compile_error)
             } else {

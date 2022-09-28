@@ -15,7 +15,7 @@ const LP: &str = NAME;
 fn gen_builder_config(out: &mut Vec<String>) {
     let cls = "IBuilderConfig";
     out.push(genc_fn(
-	&format!("{LP}_{cls}_clearFlag"),
+	&format!("{LP}_{cls}_clear_flag"),
 	FnSig {
 	    cls: Some(cls),
 	    c_fn: "&$C::clearFlag",
@@ -28,7 +28,7 @@ fn gen_builder_config(out: &mut Vec<String>) {
     ));
 
     out.push(genc_fn(
-	&format!("{LP}_{cls}_setFlag"),
+	&format!("{LP}_{cls}_set_flag"),
 	FnSig {
 	    cls: Some(cls),
 	    c_fn: "&$C::setFlag",
@@ -41,7 +41,7 @@ fn gen_builder_config(out: &mut Vec<String>) {
     ));
 
     out.push(genc_fn(
-	&format!("{LP}_{cls}_getFlag"),
+	&format!("{LP}_{cls}_get_flag"),
 	FnSig {
 	    cls: Some(cls),
 	    c_fn: "&$C::getFlag",
@@ -52,13 +52,57 @@ fn gen_builder_config(out: &mut Vec<String>) {
 	    ..default()
 	}
     ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_set_default_device_type"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::setDefaultDeviceType",
+	    is_mut: true,
+	    args: &[
+		("DeviceType", "deviceType"),
+	    ],
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_get_default_device_type"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::getDefaultDeviceType",
+	    ret_type: ReturnType::Atomic("DeviceType"),
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_get_dla_core"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::getDLACore",
+	    ret_type: ReturnType::Atomic("int32_t"),
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_set_dla_core"),
+	FnSig {
+	    cls: Some(cls),
+	    is_mut: true,
+	    c_fn: "&$C::setDLACore",
+	    args: &[("int32_t", "dlaCore")],
+	    ..default()
+	}
+    ));
 }
 
 fn gen_tensor(out: &mut Vec<String>) {
     let cls = "ITensor";
 
     out.push(genc_fn(
-	&format!("{LP}_{cls}_dynamicRangeIsSet"),
+	&format!("{LP}_{cls}_dynamic_range_is_set"),
 	FnSig {
 	    cls: Some(cls),
 	    c_fn: "&$C::dynamicRangeIsSet",
@@ -68,7 +112,7 @@ fn gen_tensor(out: &mut Vec<String>) {
     ));
 
     out.push(genc_fn(
-	&format!("{LP}_{cls}_setDynamicRange"),
+	&format!("{LP}_{cls}_set_dynamic_range"),
 	FnSig {
 	    cls: Some(cls),
 	    c_fn: "&$C::setDynamicRange",
@@ -86,7 +130,7 @@ fn gen_layer(out: &mut Vec<String>) {
     let cls = "ILayer";
 
     out.push(genc_fn(
-	&format!("{LP}_{cls}_getNbInputs"),
+	&format!("{LP}_{cls}_get_nb_inputs"),
 	FnSig {
 	    cls: Some(cls),
 	    c_fn: "&$C::getNbInputs",
@@ -96,7 +140,7 @@ fn gen_layer(out: &mut Vec<String>) {
     ));
 
     out.push(genc_fn(
-	&format!("{LP}_{cls}_getInput"),
+	&format!("{LP}_{cls}_get_input"),
 	FnSig {
 	    cls: Some(cls),
 	    c_fn: "&$C::getInput",
@@ -109,7 +153,7 @@ fn gen_layer(out: &mut Vec<String>) {
     ));
 
     out.push(genc_fn(
-	&format!("{LP}_{cls}_getNbOutputs"),
+	&format!("{LP}_{cls}_get_nb_outputs"),
 	FnSig {
 	    cls: Some(cls),
 	    c_fn: "&$C::getNbOutputs",
@@ -119,7 +163,7 @@ fn gen_layer(out: &mut Vec<String>) {
     ));
 
     out.push(genc_fn(
-	&format!("{LP}_{cls}_getOutput"),
+	&format!("{LP}_{cls}_get_output"),
 	FnSig {
 	    cls: Some(cls),
 	    c_fn: "&$C::getOutput",
@@ -131,12 +175,21 @@ fn gen_layer(out: &mut Vec<String>) {
 	}
     ));
 
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_get_type"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::getType",
+	    ret_type: ReturnType::Atomic("LayerType"),
+	    ..default()
+	}
+    ));
 }
 
 fn gen_network_definition(out: &mut Vec<String>) {
     let cls = "INetworkDefinition";
     out.push(genc_fn(
-	&format!("{LP}_{cls}_getNbLayers"),
+	&format!("{LP}_{cls}_get_nb_layers"),
 	FnSig {
 	    cls: Some(cls),
 	    c_fn: "&$C::getNbLayers",
@@ -146,7 +199,7 @@ fn gen_network_definition(out: &mut Vec<String>) {
     ));
 
     out.push(genc_fn(
-	&format!("{LP}_{cls}_getLayer"),
+	&format!("{LP}_{cls}_get_layer"),
 	FnSig {
 	    cls: Some(cls),
 	    c_fn: "&$C::getLayer",
@@ -159,7 +212,7 @@ fn gen_network_definition(out: &mut Vec<String>) {
     ));
 
     out.push(genc_fn(
-	&format!("{LP}_{cls}_getNbInputs"),
+	&format!("{LP}_{cls}_get_nb_inputs"),
 	FnSig {
 	    cls: Some(cls),
 	    c_fn: "&$C::getNbInputs",
@@ -168,6 +221,43 @@ fn gen_network_definition(out: &mut Vec<String>) {
 	}
     ));
 
+}
+
+fn gen_builder(out: &mut Vec<String>) {
+    let cls = "IBuilder";
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_create_network_v2"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::createNetworkV2",
+	    is_mut: true,
+	    ret_type: ReturnType::Atomic("INetworkDefinition*"),
+	    args: &[
+		("NetworkDefinitionCreationFlags", "flags"),
+	    ],
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_create_builder_config"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::createBuilderConfig",
+	    is_mut: true,
+	    ret_type: ReturnType::Atomic("IBuilderConfig*"),
+	    ..default()
+	}
+    ));
+
+    out.push(genc_fn(
+	&format!("{LP}_{cls}_get_nb_dla_cores"),
+	FnSig {
+	    cls: Some(cls),
+	    c_fn: "&$C::getNbDLACores",
+	    ret_type: ReturnType::Atomic("int32_t"),
+	    ..default()
+	}
+    ));
 }
 
 pub fn genc_fns() -> Vec<String> {
@@ -233,32 +323,8 @@ pub fn genc_fns() -> Vec<String> {
 	}
     ));
 
-    let cls = "IBuilder";
-    out.push(genc_fn(
-	&format!("{LP}_{cls}_createNetworkV2"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::createNetworkV2",
-	    is_mut: true,
-	    ret_type: ReturnType::Atomic("INetworkDefinition*"),
-	    args: &[
-		("NetworkDefinitionCreationFlags", "flags"),
-	    ],
-	}
-    ));
+    gen_builder(&mut out);
 
-
-    let cls = "IBuilder";
-    out.push(genc_fn(
-	&format!("{LP}_{cls}_createBuilderConfig"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::createBuilderConfig",
-	    is_mut: true,
-	    ret_type: ReturnType::Atomic("IBuilderConfig*"),
-	    ..default()
-	}
-    ));
 
     let cls = "OnnxIParser";
     out.push(genc_fn(
@@ -286,7 +352,7 @@ pub fn genc_fns() -> Vec<String> {
     ));
 
     out.push(genc_fn(
-	&format!("{LP}_{cls}_getNbErrors"),
+	&format!("{LP}_{cls}_get_nb_errors"),
 	FnSig {
 	    cls: Some(cls),
 	    c_fn: "&$C::getNbErrors",

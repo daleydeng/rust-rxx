@@ -15,7 +15,7 @@ pub fn genrs_fn(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         match stmt {
             syn::Stmt::Item(syn::Item::Fn(item)) => {
                 if item.block.stmts.is_empty() {
-                    genrs::parse_fn(&item.attrs, &item.vis, &item.sig, None, None)
+                    genrs::parse_fn(&item.attrs, &item.vis, &item.sig, None, None, "")
                         .unwrap_or_else(syn::Error::into_compile_error)
                 } else {
                     item.to_token_stream()
