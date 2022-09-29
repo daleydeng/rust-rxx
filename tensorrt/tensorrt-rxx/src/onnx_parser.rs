@@ -1,4 +1,4 @@
-use crate::{ILogger, INetworkDefinition, Severity, TensorrtError};
+use crate::{ILogger, INetworkDefinition, Severity, TrtError};
 use libc::c_char;
 use rxx::*;
 use rxx_macro::*;
@@ -26,7 +26,7 @@ genrs_fn!(
     #[ffi(link_name="tensorrt_rxx_OnnxIParser_clearErrors")]
     pub fn clear_errors(&mut self) {}
 
-    pub fn parse_from_file(&mut self, fname: &Path, verbosity: Severity) -> Result<(), TensorrtError> {
+    pub fn parse_from_file(&mut self, fname: &Path, verbosity: Severity) -> Result<(), TrtError> {
         extern "C" {
         #[link_name="tensorrt_rxx_OnnxIParser_parseFromFile"]
         fn __func(this: &mut OnnxIParser<'_>, fname: *const c_char, verbosity: Severity) -> bool;
@@ -37,7 +37,7 @@ genrs_fn!(
         if ret {
             return Ok(())
         }
-        Err(TensorrtError::OnnxParseFail)
+        Err(TrtError::OnnxParseFail)
         }
     }
     }

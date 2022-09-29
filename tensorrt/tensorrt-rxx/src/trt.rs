@@ -1,4 +1,5 @@
-use crate::ILogger;
+use std::ffi::{CString, CStr, c_char, c_void};
+use crate::{ILogger, TrtError};
 use rxx::*;
 use rxx_macro::*;
 use tensorrt_sys::nvinfer1 as ffi;
@@ -8,10 +9,12 @@ impl_raii!(IHostMemory);
 impl_raii_lt!(INetworkDefinition);
 impl_raii_lt!(IBuilderConfig);
 impl_raii_lt!(IBuilder);
-impl_raii_lt!(IRuntime);
-impl_raii_lt!(ICudaEngine);
 impl_wrapper_lt!(ILayer);
 impl_wrapper_lt!(ITensor);
+
+impl_raii_lt!(IRuntime);
+impl_raii_lt!(ICudaEngine);
+impl_raii_lt!(IExecutionContext);
 
 genrs_fn!(
 
@@ -165,4 +168,67 @@ genrs_fn!(
 	    unsafe {self.deserialize_cuda_engine(blob.data(), blob.size())}
 	}
     }
+
+    #[ffi(link_prefix="tensorrt_rxx_ICudaEngine_")]
+    impl<'a> ICudaEngine<'a> {
+	#[ffi(atomic)]
+	pub fn create_execution_context(&mut self) -> CxxPointer<IExecutionContext<'a>> {}
+
+	#[ffi(atomic)]
+	pub fn has_implicit_batch_dimension(&self) -> bool {}
+
+	#[ffi(atomic)]
+	pub fn get_nb_bindings(&self) -> i32 {}
+
+	#[ffi(atomic, link_name="{LP}get_binding_index")]
+	pub fn __get_binding_index(&self, name: *const c_char) -> i32 {}
+	pub fn get_binding_index(&self, name: &str) -> i32 {
+	    let name = CString::new(name).unwrap();
+	    self.__get_binding_index(name.as_ptr())
+	}
+
+	#[ffi(atomic, link_name="{LP}get_binding_name")]
+	pub fn __get_binding_name(&self, index: i32) -> *const c_char {}
+	pub fn get_binding_name(&self, index: i32) -> Option<String> {
+	    let name = self.__get_binding_name(index);
+	    if name.is_null() {
+		None
+	    } else {
+		unsafe {Some(CStr::from_ptr(name).to_str().unwrap().to_owned())}
+	    }
+	}
+
+	#[ffi(atomic)]
+	pub fn get_binding_dimensions(&self, index: i32) -> ffi::Dims {}
+
+	#[ffi(atomic)]
+	pub fn get_binding_data_type(&self, index: i32) -> ffi::DataType {}
+
+	#[ffi(atomic)]
+	pub fn get_binding_vectorized_dim(&self, index: i32) -> i32 {}
+
+	#[ffi(atomic)]
+	pub fn get_binding_components_per_element(&self, index: i32) -> i32 {}
+
+    }
+
+    #[ffi(link_prefix="tensorrt_rxx_IExecutionContext_")]
+    impl<'a> IExecutionContext<'a> {
+	#[ffi(atomic)]
+	pub fn get_binding_dimensions(&self, index: i32) -> ffi::Dims {}
+
+	#[ffi(atomic, link_name="{LP}execute_v2")]
+	pub unsafe fn __execute_v2(&mut self, bindings: *const *mut c_void) -> bool {}
+	pub fn execute_v2(&mut self, bindings: &mut Vec<cuda_ffi::DeviceMemory>) -> Result<(), TrtError> {
+	    unsafe {
+		let bindings = bindings.iter().map(|i| i.as_ptr()).collect::<Vec<_>>();
+		if self.__execute_v2(bindings.as_ptr()) {
+		    Ok(())
+		} else {
+		    Err(TrtError::ExecutionFailed)
+		}
+	    }
+	}
+    }
+
 );

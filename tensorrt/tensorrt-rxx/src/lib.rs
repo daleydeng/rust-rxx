@@ -1,8 +1,8 @@
 #![feature(default_free_fn, absolute_path)]
 pub use tensorrt_sys::nvinfer1 as ffi;
 
-pub mod wrapper;
-pub use wrapper::*;
+pub mod common;
+pub use common::*;
 
 pub mod logger;
 pub use logger::*;
@@ -20,9 +20,11 @@ pub use onnx_parser::*;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum TensorrtError {
+pub enum TrtError {
     #[error("onnx parse failed")]
     OnnxParseFail,
+    #[error("execution failed")]
+    ExecutionFailed,
 }
 
 #[cfg(test)]

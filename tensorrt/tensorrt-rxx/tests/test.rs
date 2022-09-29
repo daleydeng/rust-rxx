@@ -1,9 +1,21 @@
 #![feature(slice_range)]
+use num_traits::zero;
 use rstest::rstest;
 use std::path::Path;
+use std::io::Cursor;
+use rand::thread_rng;
+use rand::seq::SliceRandom;
+use image::io::Reader as ImageReader;
+use image::{DynamicImage, ImageBuffer};
 use tensorrt_rxx::ffi::BuilderFlag::*;
 use tensorrt_rxx::*;
+use nalgebra::SVector;
 use cuda_rs::*;
+use crate::type_size;
+
+fn div_up(x: i32, n: i32) -> i32 {
+    (x + n - 1) / n
+}
 
 fn set_all_dynamic_ranges(network: &mut INetworkDefinition, in_range: f32, out_range: f32)
 {
@@ -99,7 +111,29 @@ fn test_builder(#[case] use_fp16: bool, #[case] use_int8: bool) {
 
     let mut runtime = create_infer_runtime(&mut logger);
 
-    let engine = runtime.deserialize_cuda_engine_host_memory(&plan);
+    let mut engine = runtime.deserialize_cuda_engine_host_memory(&plan);
+
+    let mut dev_mems = Vec::new();
+    for i in 0..engine.get_nb_bindings() {
+	let mut dims = engine.get_binding_dimensions(i);
+	let mut vol = 1usize;
+	let type_ = engine.get_binding_data_type(i);
+	let vec_dim = engine.get_binding_vectorized_dim(i);
+	if vec_dim != -1 {
+	    let vec_dim = vec_dim as usize;
+	    let scalars_per_vec = engine.get_binding_components_per_element(i);
+	    dims.d[vec_dim] = div_up(dims.d[vec_dim], scalars_per_vec);
+	    vol *= scalars_per_vec as usize;
+	}
+	vol *= dims.d[..dims.nbDims as usize].iter().product::<i32>() as usize;
+	println!("vol {vol}");
+	println!("dims {:?}", dims);
+	let binding_name = engine.get_binding_name(i).unwrap();
+
+	println!("type {:?}", engine.get_binding_data_type(i));
+	let dev_mem = DeviceMemory::malloc(vol * type_size(engine.get_binding_data_type(i)));
+	dev_mems.push(dev_mem);
+    };
 
     assert_eq!(network.get_nb_inputs(), 1);
     let input_dims = network.get_input(0).unwrap().get_dimensions();
@@ -108,4 +142,34 @@ fn test_builder(#[case] use_fp16: bool, #[case] use_int8: bool) {
     assert_eq!(network.get_nb_outputs(), 1);
     let output_dims = network.get_output(0).unwrap().get_dimensions();
     assert_eq!(output_dims.nbDims, 2);
+
+    let mut context = engine.create_execution_context();
+
+    let mut ids: Vec<i32> = (0..10).collect();
+    ids.shuffle(&mut thread_rng());
+
+    let mut correct = 0;
+    for i in &ids {
+	let img = ImageReader::open(format!("data/images/{i}.pgm")).unwrap().decode().unwrap();
+	let DynamicImage::ImageLuma8(img) = img else {
+	    panic!("image format wrong");
+	};
+
+	// let w = img.width();
+	// let h = img.height();
+	let buf = img.pixels().map(|p| 1.0 - p.0[0] as f32 / 255.0 ).collect::<Vec<_>>();
+
+	dev_mems[0].copy_from_slice(&buf);
+	context.execute_v2(&mut dev_mems).unwrap();
+
+	let mut ret = SVector::<f32, 10>::zeros();
+	dev_mems[1].copy_to_slice(ret.as_mut_slice());
+
+	let pred = ret.argmax().0 as i32;
+	correct += (pred == *i) as usize;
+    }
+
+    let total = ids.len();
+    println!("correct/total {correct}/{total}");
+    assert_eq!(correct, total);
 }
