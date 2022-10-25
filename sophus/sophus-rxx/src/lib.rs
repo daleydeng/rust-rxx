@@ -1,6 +1,6 @@
-use std::ops::Mul;
-use num::traits::Float;
 use eigen_rxx::*;
+use num::traits::Float;
+use std::ops::Mul;
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, Default, PartialEq)]
@@ -12,125 +12,125 @@ pub type SO2d = SO2<f64>;
 
 rxx_macro::genrs_fn!(
     impl SO2d {
-	#[ffi(link_name="sophus_rxx_get_SO2d_DoF", atomic)]
-	pub fn dof() -> i32 {}
-	#[ffi(link_name="sophus_rxx_get_SO2d_num_parameters", atomic)]
-	pub fn num_parameters() -> i32 {}
-	#[ffi(link_name="sophus_rxx_get_SO2d_N", atomic)]
-	pub fn n() -> i32 {}
-	#[ffi(link_name="sophus_rxx_get_SO2d_Dim", atomic)]
-	pub fn dim() -> i32 {}
-	#[ffi(link_name="sophus_rxx_SO2d_Adj", atomic)]
-	pub fn adj(&self) -> f64 {}
-	#[ffi(link_name="sophus_rxx_SO2d_inverse", object)]
-	pub fn inverse(&self) -> SO2d {}
-	#[ffi(link_name="sophus_rxx_SO2d_log", atomic)]
-	pub fn log(&self) -> f64 {}
-	#[ffi(link_name="sophus_rxx_SO2d_normalize")]
-	pub fn normalize(&mut self) {}
-	#[ffi(link_name="sophus_rxx_SO2d_matrix")]
-	pub fn matrix(&self) -> Matrix2d {}
+    #[ffi(link_name="sophus_rxx_get_SO2d_DoF", atomic)]
+    pub fn dof() -> i32 {}
+    #[ffi(link_name="sophus_rxx_get_SO2d_num_parameters", atomic)]
+    pub fn num_parameters() -> i32 {}
+    #[ffi(link_name="sophus_rxx_get_SO2d_N", atomic)]
+    pub fn n() -> i32 {}
+    #[ffi(link_name="sophus_rxx_get_SO2d_Dim", atomic)]
+    pub fn dim() -> i32 {}
+    #[ffi(link_name="sophus_rxx_SO2d_Adj", atomic)]
+    pub fn adj(&self) -> f64 {}
+    #[ffi(link_name="sophus_rxx_SO2d_inverse", object)]
+    pub fn inverse(&self) -> SO2d {}
+    #[ffi(link_name="sophus_rxx_SO2d_log", atomic)]
+    pub fn log(&self) -> f64 {}
+    #[ffi(link_name="sophus_rxx_SO2d_normalize")]
+    pub fn normalize(&mut self) {}
+    #[ffi(link_name="sophus_rxx_SO2d_matrix")]
+    pub fn matrix(&self) -> Matrix2d {}
 
-	#[ffi(link_name="sophus_rxx_SO2d_params")]
-	pub fn params(&self) -> Vector2d {}
+    #[ffi(link_name="sophus_rxx_SO2d_params")]
+    pub fn params(&self) -> Vector2d {}
 
-	#[ffi(link_name="sophus_rxx_SO2d_setComplex")]
-	pub fn set_complex(&mut self, v: &Vector2d) {}
+    #[ffi(link_name="sophus_rxx_SO2d_setComplex")]
+    pub fn set_complex(&mut self, v: &Vector2d) {}
 
-	#[ffi(link_name="sophus_rxx_SO2d_unit_complex", atomic)]
-	pub fn unit_complex(&mut self) -> &Vector2d {}
+    #[ffi(link_name="sophus_rxx_SO2d_unit_complex", atomic)]
+    pub fn unit_complex(&mut self) -> &Vector2d {}
     }
 
     impl Mul for &SO2d {
-	type Output = SO2d;
-	#[ffi(link_name="sophus_rxx_SO2d_mul")]
-	fn mul(self, rhs: Self) -> Self::Output {}
+    type Output = SO2d;
+    #[ffi(link_name="sophus_rxx_SO2d_mul")]
+    fn mul(self, rhs: Self) -> Self::Output {}
     }
 
     impl Mul for SO2d {
-	type Output = Self;
-	fn mul(self, rhs: Self) -> Self::Output {
-	    (&self).mul(&rhs)
-	}
+    type Output = Self;
+    fn mul(self, rhs: Self) -> Self::Output {
+        (&self).mul(&rhs)
+    }
     }
 
     impl Mul<&Vector2d> for &SO2d {
-	type Output = Vector2d;
-	#[ffi(link_name="sophus_rxx_SO2d_mul_point")]
-	fn mul(self, rhs: &Self::Output) -> Self::Output {}
+    type Output = Vector2d;
+    #[ffi(link_name="sophus_rxx_SO2d_mul_point")]
+    fn mul(self, rhs: &Self::Output) -> Self::Output {}
     }
 
     impl Mul<Vector2d> for SO2d {
-	type Output = Vector2d;
-	fn mul(self, rhs: Self::Output) -> Self::Output {
-	    (&self).mul(&rhs)
-	}
+    type Output = Vector2d;
+    fn mul(self, rhs: Self::Output) -> Self::Output {
+        (&self).mul(&rhs)
+    }
     }
 
     impl Mul<&Vector3d> for &SO2d {
-	type Output = Vector3d;
-	#[ffi(link_name="sophus_rxx_SO2d_mul_hpoint")]
-	fn mul(self, rhs: &Self::Output) -> Self::Output {}
+    type Output = Vector3d;
+    #[ffi(link_name="sophus_rxx_SO2d_mul_hpoint")]
+    fn mul(self, rhs: &Self::Output) -> Self::Output {}
     }
 
     impl Mul<Vector3d> for SO2d {
-	type Output = Vector3d;
-	fn mul(self, rhs: Self::Output) -> Self::Output {
-	    (&self).mul(&rhs)
-	}
+    type Output = Vector3d;
+    fn mul(self, rhs: Self::Output) -> Self::Output {
+        (&self).mul(&rhs)
+    }
     }
 
 );
 
 #[cfg(test)]
 mod tests {
-    use std::f64::consts::PI;
     use crate::*;
+    use std::f64::consts::PI;
 
     #[test]
     fn test_const() {
-	assert_eq!(SO2d::dof(), 1);
-	assert_eq!(SO2d::num_parameters(), 2);
-	assert_eq!(SO2d::n(), 2);
-	assert_eq!(SO2d::dim(), 2);
+        assert_eq!(SO2d::dof(), 1);
+        assert_eq!(SO2d::num_parameters(), 2);
+        assert_eq!(SO2d::n(), 2);
+        assert_eq!(SO2d::dim(), 2);
     }
 
     #[test]
     fn test_so2() {
-	let mut s = SO2d::default();
-	assert_eq!(s.adj(), 1.0);
-	s.unit_complex_.data = [0.0, 2.0];
-	let s1 = s.inverse();
-	assert_eq!(s1.unit_complex_.data, [0.0, -1.0]);
-	assert_eq!(s.log(), PI/2.);
+        let mut s = SO2d::default();
+        assert_eq!(s.adj(), 1.0);
+        s.unit_complex_.data = [0.0, 2.0];
+        let s1 = s.inverse();
+        assert_eq!(s1.unit_complex_.data, [0.0, -1.0]);
+        assert_eq!(s.log(), PI / 2.);
 
-	let mut s = s;
-	s.normalize();
-	assert_eq!(s.unit_complex_.data, [0.0, 1.0]);
+        let mut s = s;
+        s.normalize();
+        assert_eq!(s.unit_complex_.data, [0.0, 1.0]);
 
-	assert_eq!(s.matrix(), Matrix::<f64, 2, 2> {
-	    data: [0.0, 1.0, -1.0, 0.0]
-	});
+        assert_eq!(
+            s.matrix(),
+            Matrix::<f64, 2, 2> {
+                data: [0.0, 1.0, -1.0, 0.0]
+            }
+        );
 
-	assert_eq!((s * s1).unit_complex_.data, [1., 0.]);
+        assert_eq!((s * s1).unit_complex_.data, [1., 0.]);
 
-	let p = Vector2d {
-	    data: [5., 10.],
-	};
+        let p = Vector2d { data: [5., 10.] };
 
-	assert_eq!((s * p).data, [-10., 5.0]);
+        assert_eq!((s * p).data, [-10., 5.0]);
 
-	let p = Vector3d {
-	    data: [5., 10., 1.],
-	};
-	assert_eq!((s * p).data, [-10., 5.0, 1.]);
-	assert_eq!(s.params().data, [0.0, 1.0]);
+        let p = Vector3d {
+            data: [5., 10., 1.],
+        };
+        assert_eq!((s * p).data, [-10., 5.0, 1.]);
+        assert_eq!(s.params().data, [0.0, 1.0]);
 
-	s.set_complex(&Vector2d {data: [0.5, 0.5]});
-	let gt = [1. / 2.0.sqrt(), 1. / 2.0.sqrt()];
-	assert_eq!(s.params().data, gt);
-	assert_eq!(s.unit_complex().data, gt);
-
+        s.set_complex(&Vector2d { data: [0.5, 0.5] });
+        let gt = [1. / 2.0.sqrt(), 1. / 2.0.sqrt()];
+        assert_eq!(s.params().data, gt);
+        assert_eq!(s.unit_complex().data, gt);
     }
 
     // #[test]

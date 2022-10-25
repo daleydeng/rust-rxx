@@ -2,7 +2,7 @@ use crate::{get_attr, ReturnType};
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
 use std::collections::HashMap;
-use syn::{spanned::Spanned, parse_quote};
+use syn::{parse_quote, spanned::Spanned};
 
 fn get_path_segment(t: &syn::Type) -> Option<&syn::PathSegment> {
     let syn::Type::Path(syn::TypePath {path: syn::Path{segments, ..}, ..}) = t else {
@@ -56,7 +56,6 @@ fn replace_type_dic(
     ty: &syn::Type,
     type_dic: &HashMap<syn::Type, Box<syn::Type>>,
 ) -> Box<syn::Type> {
-
     use syn::Type::*;
 
     match ty {
@@ -78,7 +77,7 @@ fn replace_type_dic(
             }
         }
 
-	Tuple(_) => Box::new(ty.clone()),
+        Tuple(_) => Box::new(ty.clone()),
         _ => unimplemented!("unsupported type replace {:?}", ty),
     }
 }
@@ -96,26 +95,30 @@ pub fn parse_fn(
     let mut ret_mode = ReturnType::Object(());
 
     if !link_prefix.is_empty() {
-	link_name = syn::Ident::new(&format!("{}{}", link_prefix, link_name), link_name.span());
+        link_name = syn::Ident::new(&format!("{}{}", link_prefix, link_name), link_name.span());
     }
 
-    let tpl_vars = HashMap::from([
-	("LP".to_owned(), link_prefix),
-    ]);
+    let tpl_vars = HashMap::from([("LP".to_owned(), link_prefix)]);
 
     if let Some(meta_list) = get_attr(attrs)? {
         for i in meta_list.nested {
             match i {
                 syn::NestedMeta::Meta(syn::Meta::NameValue(m)) => {
-		    let key = m.path.get_ident().unwrap().to_string();
-		    let syn::Lit::Str(val) = m.lit else {
+                    let key = m.path.get_ident().unwrap().to_string();
+                    let syn::Lit::Str(val) = m.lit else {
 			continue;
 		    };
                     if key == "link_name" {
-			link_name = syn::Ident::new(&strfmt::strfmt(&val.value(), &tpl_vars).unwrap(), val.span());
+                        link_name = syn::Ident::new(
+                            &strfmt::strfmt(&val.value(), &tpl_vars).unwrap(),
+                            val.span(),
+                        );
                     } else if key == "link_prefix" {
-			link_name = syn::Ident::new(&format!("{}{}", val.value(), link_name), link_name.span());
-		    }
+                        link_name = syn::Ident::new(
+                            &format!("{}{}", val.value(), link_name),
+                            link_name.span(),
+                        );
+                    }
                 }
                 syn::NestedMeta::Meta(syn::Meta::Path(p)) => {
                     if p.is_ident("atomic") {
@@ -324,8 +327,8 @@ pub fn parse_impl(item_impl: &syn::ItemImpl) -> syn::Result<TokenStream> {
     let attrs = &item_impl.attrs;
     let mut link_prefix = "".to_owned();
     if let Some(meta_list) = get_attr(attrs)? {
-	for i in meta_list.nested {
-	    match i {
+        for i in meta_list.nested {
+            match i {
                 syn::NestedMeta::Meta(syn::Meta::NameValue(m)) => {
                     if m.path.get_ident().unwrap() == "link_prefix" {
                         if let syn::Lit::Str(l) = m.lit {
@@ -333,9 +336,9 @@ pub fn parse_impl(item_impl: &syn::ItemImpl) -> syn::Result<TokenStream> {
                         }
                     }
                 }
-		m => panic!("uncovered impl meta here {:?}", m),
-	    }
-	}
+                m => panic!("uncovered impl meta here {:?}", m),
+            }
+        }
     }
 
     let self_ty = &item_impl.self_ty;
@@ -349,9 +352,7 @@ pub fn parse_impl(item_impl: &syn::ItemImpl) -> syn::Result<TokenStream> {
         })
         .collect();
 
-    let mut type_dic = HashMap::from([
-	(parse_quote!{Self}, self_ty.clone()),
-    ]);
+    let mut type_dic = HashMap::from([(parse_quote! {Self}, self_ty.clone())]);
 
     let tts = item_impl.items.iter().map(|i| match i {
         syn::ImplItem::Method(v) => {
@@ -362,7 +363,7 @@ pub fn parse_impl(item_impl: &syn::ItemImpl) -> syn::Result<TokenStream> {
                     &v.sig,
                     Some(&type_dic),
                     Some((self_ty, &self_lt)),
-		    &link_prefix,
+                    &link_prefix,
                 )
                 .unwrap_or_else(syn::Error::into_compile_error)
             } else {

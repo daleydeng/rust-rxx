@@ -1,8 +1,8 @@
-use std::env;
-use std::path::PathBuf;
-use std::collections::HashSet;
 use anyhow::Result;
 use sophus_rxx_build::*;
+use std::collections::HashSet;
+use std::env;
+use std::path::PathBuf;
 
 fn main() -> Result<()> {
     let prefix = PathBuf::from(env::var("CONDA_PREFIX")?);
@@ -10,8 +10,8 @@ fn main() -> Result<()> {
 
     let inc_dirs = HashSet::from([
         out_dir.join("include"),
-	prefix.join("include"),
-        prefix.join("include").join("eigen3")
+        prefix.join("include"),
+        prefix.join("include").join("eigen3"),
     ]);
 
     let mut src_files = HashSet::new();

@@ -15,10 +15,10 @@ pub struct CxxPointer<T: CxxPointerDrop> {
 
 impl<T: CxxPointerDrop> Default for CxxPointer<T> {
     fn default() -> Self {
-	Self {
-	    ptr: std::ptr::null_mut(),
-	    _pd: Default::default(),
-	}
+        Self {
+            ptr: std::ptr::null_mut(),
+            _pd: Default::default(),
+        }
     }
 }
 impl<T: CxxPointerDrop> CxxPointer<T> {
@@ -29,7 +29,7 @@ impl<T: CxxPointerDrop> CxxPointer<T> {
     pub fn null() -> Self {
         CxxPointer {
             ptr: std::ptr::null_mut(),
-	    ..Default::default()
+            ..Default::default()
         }
     }
 
@@ -77,7 +77,6 @@ impl<T: CxxPointerDrop> CxxPointer<T> {
         std::mem::forget(self);
         ptr
     }
-
 }
 
 unsafe impl<T> Send for CxxPointer<T> where T: Send + CxxPointerDrop {}
@@ -129,7 +128,7 @@ impl<T: CxxPointerDrop + Display> Display for CxxPointer<T> {
 
 impl<T: CxxPointerDrop> Drop for CxxPointer<T> {
     fn drop(&mut self) {
-	unsafe { T::__drop(&mut *self.ptr) }
+        unsafe { T::__drop(&mut *self.ptr) }
     }
 }
 
@@ -137,13 +136,13 @@ impl<T: CxxPointerDrop> Drop for CxxPointer<T> {
 macro_rules! genrs_pointer_drop {
     ($link_name:ident, $tp:ty) => {
         impl $crate::CxxPointerDrop for $tp {
-	    unsafe fn __drop(&mut self) {
+            unsafe fn __drop(&mut self) {
                 extern "C" {
-		    #[link_name=stringify!($link_name)]
-		    fn func(this: *mut $tp);
+                    #[link_name=stringify!($link_name)]
+                    fn func(this: *mut $tp);
                 }
                 func(self);
-	    }
-	}
+            }
+        }
     };
 }

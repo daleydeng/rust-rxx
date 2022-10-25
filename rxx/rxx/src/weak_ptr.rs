@@ -4,7 +4,10 @@ use core::fmt::{self, Debug};
 use core::marker::PhantomData;
 use core::mem::MaybeUninit;
 
-pub trait WeakPtrTarget where Self: Sized + SharedPtrTarget {
+pub trait WeakPtrTarget
+where
+    Self: Sized + SharedPtrTarget,
+{
     unsafe fn __drop(this: &mut WeakPtr<Self>);
     unsafe fn __clone(this: &WeakPtr<Self>, new: *mut WeakPtr<Self>);
     unsafe fn __downgrade(shared: &SharedPtr<Self>, weak: *mut WeakPtr<Self>);
@@ -76,37 +79,37 @@ macro_rules! genrs_weak_ptr {
     ($link_name:ident, $tp:ty) => {
         paste::paste! {
             impl $crate::WeakPtrTarget for $tp {
-		unsafe fn __drop(this: &mut WeakPtr<Self>) {
+        unsafe fn __drop(this: &mut WeakPtr<Self>) {
                     extern "C" {
-			#[link_name=stringify!([<$link_name _destroy>])]
-			fn func(this: &mut WeakPtr<$tp>);
+            #[link_name=stringify!([<$link_name _destroy>])]
+            fn func(this: &mut WeakPtr<$tp>);
                     }
                     func(this);
-		}
+        }
 
-		unsafe fn __clone(this: &WeakPtr<Self>, out: *mut WeakPtr<Self>) {
+        unsafe fn __clone(this: &WeakPtr<Self>, out: *mut WeakPtr<Self>) {
                     extern "C" {
-			#[link_name=stringify!([<$link_name _clone>])]
-			fn func(this: &WeakPtr<$tp>, out: *mut WeakPtr<$tp>);
+            #[link_name=stringify!([<$link_name _clone>])]
+            fn func(this: &WeakPtr<$tp>, out: *mut WeakPtr<$tp>);
                     }
                     func(this, out);
-		}
+        }
 
-		unsafe fn __downgrade(shared: &SharedPtr<Self>, weak: *mut WeakPtr<Self>) {
+        unsafe fn __downgrade(shared: &SharedPtr<Self>, weak: *mut WeakPtr<Self>) {
                     extern "C" {
-			#[link_name=stringify!([<$link_name _downgrade>])]
-			fn func(shared: &SharedPtr<$tp>, weak: *mut WeakPtr<$tp>);
+            #[link_name=stringify!([<$link_name _downgrade>])]
+            fn func(shared: &SharedPtr<$tp>, weak: *mut WeakPtr<$tp>);
                     }
                     func(shared, weak);
-		}
+        }
 
-		unsafe fn __upgrade(weak: &WeakPtr<Self>, shared: *mut SharedPtr<Self>) {
+        unsafe fn __upgrade(weak: &WeakPtr<Self>, shared: *mut SharedPtr<Self>) {
                     extern "C" {
-			#[link_name=stringify!([<$link_name _upgrade>])]
-			fn func(weak: &WeakPtr<$tp>, shared: *mut SharedPtr<$tp>);
+            #[link_name=stringify!([<$link_name _upgrade>])]
+            fn func(weak: &WeakPtr<$tp>, shared: *mut SharedPtr<$tp>);
                     }
                     func(weak, shared);
-		}
+        }
             }
         }
     };

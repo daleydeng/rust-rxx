@@ -4,20 +4,28 @@ pub trait FixedSize {
 
 #[repr(C, align(16))]
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Matrix<T, const R: usize, const C: usize> where [(); R * C]:
+pub struct Matrix<T, const R: usize, const C: usize>
+where
+    [(); R * C]:,
 {
-    pub data: [T; R * C]
+    pub data: [T; R * C],
 }
 
-impl<T: Default + Copy, const R: usize, const C: usize> Default for Matrix<T, R, C> where [(); R * C]: {
+impl<T: Default + Copy, const R: usize, const C: usize> Default for Matrix<T, R, C>
+where
+    [(); R * C]:,
+{
     fn default() -> Self {
-	Self {
-	    data: [T::default(); R * C],
-	}
+        Self {
+            data: [T::default(); R * C],
+        }
     }
 }
 
-impl<T, const R: usize, const C: usize> FixedSize for Matrix<T, R, C> where [(); R * C]: {
+impl<T, const R: usize, const C: usize> FixedSize for Matrix<T, R, C>
+where
+    [(); R * C]:,
+{
     type Scalar = T;
 }
 
@@ -201,120 +209,120 @@ impl<T> FixedSize for Quaternion<T> {
 #[derive(Debug, Copy, Clone)]
 pub struct AngleAxis<T> {
     pub axis: Vector3d,
-    pub angle: T
+    pub angle: T,
 }
 
 #[macro_export]
 macro_rules! impl_quat {
     ($name:ident = Quaternion<$tp:ty>) => {
-	paste::paste! {
-	    pub type $name = $crate::Quaternion<$tp>;
-	    type [<$name _from>] = nalgebra::Quaternion<$tp>;
+        paste::paste! {
+            pub type $name = $crate::Quaternion<$tp>;
+            type [<$name _from>] = nalgebra::Quaternion<$tp>;
 
-	    impl From<[<$name _from>]> for $name {
-		fn from(v: [<$name _from>]) -> Self {
-		    Self {
-			x: v.coords.x,
-			y: v.coords.y,
-			z: v.coords.z,
-			w: v.coords.w,
-		    }
-		}
-	    }
+            impl From<[<$name _from>]> for $name {
+            fn from(v: [<$name _from>]) -> Self {
+                Self {
+                x: v.coords.x,
+                y: v.coords.y,
+                z: v.coords.z,
+                w: v.coords.w,
+                }
+            }
+            }
 
-	    impl std::ops::Mul for $name {
-		type Output = Self;
+            impl std::ops::Mul for $name {
+            type Output = Self;
 
-		fn mul(self, other: Self) -> Self::Output {
-		    extern "C" {
-			#[link_name=stringify!([< eigen_rxx_ $name _mul>])]
-			fn __func(this: &$name, other: &$name, ret: *mut $name);
-		    }
+            fn mul(self, other: Self) -> Self::Output {
+                extern "C" {
+                #[link_name=stringify!([< eigen_rxx_ $name _mul>])]
+                fn __func(this: &$name, other: &$name, ret: *mut $name);
+                }
 
-		    unsafe {
-			let mut __ret = std::mem::MaybeUninit::<Self::Output>::uninit();
-			let mut __ret_ptr = __ret.as_mut_ptr();
-			__func(&self, &other, __ret_ptr);
-			__ret.assume_init()
-		    }
-		}
-	    }
+                unsafe {
+                let mut __ret = std::mem::MaybeUninit::<Self::Output>::uninit();
+                let mut __ret_ptr = __ret.as_mut_ptr();
+                __func(&self, &other, __ret_ptr);
+                __ret.assume_init()
+                }
+            }
+            }
 
-	    impl From<$name> for [<$name _from>] {
-		fn from(v: $name) -> Self {
-		    Self::new(v.w, v.x, v.y, v.z)
-		}
-	    }
+            impl From<$name> for [<$name _from>] {
+            fn from(v: $name) -> Self {
+                Self::new(v.w, v.x, v.y, v.z)
+            }
+            }
 
-	    pub type [<MapMut_ $name>]<'a> = $crate::MapMut<'a, $name>;
-	    type [<MapMut_ $name _from>] = nalgebra::Quaternion<$tp>;
+            pub type [<MapMut_ $name>]<'a> = $crate::MapMut<'a, $name>;
+            type [<MapMut_ $name _from>] = nalgebra::Quaternion<$tp>;
 
-	    impl<'a> [<MapMut_ $name>]<'a> {
-		pub fn new(data: &'a mut [$tp]) -> Self {
-		    extern "C" {
-			#[link_name=stringify!([< eigen_rxx_MapMut_ $name _new>])]
-			fn __func<'a>(data: *mut $tp, ret: *mut [<MapMut_ $name>]<'a>);
-		    }
+            impl<'a> [<MapMut_ $name>]<'a> {
+            pub fn new(data: &'a mut [$tp]) -> Self {
+                extern "C" {
+                #[link_name=stringify!([< eigen_rxx_MapMut_ $name _new>])]
+                fn __func<'a>(data: *mut $tp, ret: *mut [<MapMut_ $name>]<'a>);
+                }
 
-		    unsafe {
-		        let mut __ret = std::mem::MaybeUninit::<Self>::uninit();
-			__func(data.as_mut_ptr(), __ret.as_mut_ptr());
-			__ret.assume_init()
-		    }
+                unsafe {
+                    let mut __ret = std::mem::MaybeUninit::<Self>::uninit();
+                __func(data.as_mut_ptr(), __ret.as_mut_ptr());
+                __ret.assume_init()
+                }
 
-		}
-	    }
+            }
+            }
 
-	    impl<'a> From<&'a mut [<MapMut_ $name _from>]> for [<MapMut_ $name>]<'a> {
-		fn from(v: &'a mut [<MapMut_ $name _from>]) -> Self {
-		    Self::new(v.coords.as_mut_slice())
-		}
-	    }
+            impl<'a> From<&'a mut [<MapMut_ $name _from>]> for [<MapMut_ $name>]<'a> {
+            fn from(v: &'a mut [<MapMut_ $name _from>]) -> Self {
+                Self::new(v.coords.as_mut_slice())
+            }
+            }
 
-	    impl<'a> From<[<MapMut_ $name>]<'a>> for [<MapMut_ $name _from>] {
-		fn from(v: [<MapMut_ $name>]<'a>) -> Self {
-		    let d = unsafe {
-			std::slice::from_raw_parts(v.data, 4)
-		    };
-		    Self::from_vector(nalgebra::Vector4::from_column_slice(d))
-		}
-	    }
+            impl<'a> From<[<MapMut_ $name>]<'a>> for [<MapMut_ $name _from>] {
+            fn from(v: [<MapMut_ $name>]<'a>) -> Self {
+                let d = unsafe {
+                std::slice::from_raw_parts(v.data, 4)
+                };
+                Self::from_vector(nalgebra::Vector4::from_column_slice(d))
+            }
+            }
 
-	    pub type [<Map_ $name>]<'a> = $crate::Map<'a, $name>;
-	    type [<Map_ $name _from>] = nalgebra::Quaternion<$tp>;
+            pub type [<Map_ $name>]<'a> = $crate::Map<'a, $name>;
+            type [<Map_ $name _from>] = nalgebra::Quaternion<$tp>;
 
-	    impl<'a> [<Map_ $name>]<'a> {
-		pub fn new(data: &'a  [$tp]) -> Self {
-		    extern "C" {
-			#[link_name=stringify!([< eigen_rxx_Map_ $name _new>])]
-			fn __func<'a>(data: *const $tp, ret: *mut [<Map_ $name>]<'a>);
-		    }
+            impl<'a> [<Map_ $name>]<'a> {
+            pub fn new(data: &'a  [$tp]) -> Self {
+                extern "C" {
+                #[link_name=stringify!([< eigen_rxx_Map_ $name _new>])]
+                fn __func<'a>(data: *const $tp, ret: *mut [<Map_ $name>]<'a>);
+                }
 
-		    unsafe {
-		        let mut __ret = std::mem::MaybeUninit::<Self>::uninit();
-			__func(data.as_ptr(), __ret.as_mut_ptr());
-			__ret.assume_init()
-		    }
+                unsafe {
+                    let mut __ret = std::mem::MaybeUninit::<Self>::uninit();
+                __func(data.as_ptr(), __ret.as_mut_ptr());
+                __ret.assume_init()
+                }
 
-		}
-	    }
+            }
+            }
 
-	    impl<'a> From<&'a  [<Map_ $name _from>]> for [<Map_ $name>]<'a> {
-		fn from(v: &'a  [<Map_ $name _from>]) -> Self {
-		    Self::new(v.coords.as_slice())
-		}
-	    }
+            impl<'a> From<&'a  [<Map_ $name _from>]> for [<Map_ $name>]<'a> {
+            fn from(v: &'a  [<Map_ $name _from>]) -> Self {
+                Self::new(v.coords.as_slice())
+            }
+            }
 
-	    impl<'a> From<[<Map_ $name>]<'a>> for [<Map_ $name _from>] {
-		fn from(v: [<Map_ $name>]<'a>) -> Self {
-		    let d = unsafe {
-			std::slice::from_raw_parts(v.data, 4)
-		    };
-		    Self::from_vector(nalgebra::Vector4::from_column_slice(d))
-		}
-	    }
-	}
-    }
+            impl<'a> From<[<Map_ $name>]<'a>> for [<Map_ $name _from>] {
+            fn from(v: [<Map_ $name>]<'a>) -> Self {
+                let d = unsafe {
+                std::slice::from_raw_parts(v.data, 4)
+                };
+                Self::from_vector(nalgebra::Vector4::from_column_slice(d))
+            }
+            }
+        }
+    };
 }
 
 impl_quat!(Quaterniond=Quaternion<f64>);

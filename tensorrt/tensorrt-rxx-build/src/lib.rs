@@ -1,10 +1,10 @@
 #![feature(default_free_fn)]
+use anyhow::{bail, Result};
+use rxx_build::*;
+use std::collections::HashSet;
 use std::default::default;
 use std::path::{Path, PathBuf};
 use std::sync::Once;
-use std::collections::HashSet;
-use anyhow::{bail, Result};
-use rxx_build::*;
 
 const C_HDR: &str = include_str!("../include/wrapper.hh");
 const C_SRC: &str = include_str!("../csrc/wrapper.cc");
@@ -18,29 +18,26 @@ fn gen_logger(out: &mut Vec<String>) {
     out.push(genc_delete(&format!("{lp}_delete"), cls));
 
     out.push(genc_fn(
-	&format!("{LP}_RustLogger_create"),
-	FnSig {
-	    c_fn: "RustLogger::create",
-	    ret_type: ReturnType::Atomic("ILogger*"),
-	    args: &[
-		("void*", "obj"),
-		("log_fn_t", "log_fn"),
-	    ],
-	    ..default()
-	}
+        &format!("{LP}_RustLogger_create"),
+        FnSig {
+            c_fn: "RustLogger::create",
+            ret_type: ReturnType::Atomic("ILogger*"),
+            args: &[("void*", "obj"), ("log_fn_t", "log_fn")],
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{LP}_log"),
-	FnSig {
-	    c_fn: "log",
-	    args: &[
-		("ILogger*", "self"),
-		("ILogger::Severity", "severity"),
-		("const char*", "msg"),
-	    ],
-	    ..default()
-	}
+        &format!("{LP}_log"),
+        FnSig {
+            c_fn: "log",
+            args: &[
+                ("ILogger*", "self"),
+                ("ILogger::Severity", "severity"),
+                ("const char*", "msg"),
+            ],
+            ..default()
+        },
     ));
 }
 
@@ -50,109 +47,100 @@ fn gen_builder_config(out: &mut Vec<String>) {
     out.push(genc_delete(&format!("{lp}_delete"), cls));
 
     out.push(genc_fn(
-	&format!("{lp}_clear_flag"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::clearFlag",
-	    is_mut: true,
-	    args: &[
-		("BuilderFlag", "flag"),
-	    ],
-	    ..default()
-	}
+        &format!("{lp}_clear_flag"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::clearFlag",
+            is_mut: true,
+            args: &[("BuilderFlag", "flag")],
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_set_flag"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::setFlag",
-	    is_mut: true,
-	    args: &[
-		("BuilderFlag", "flag"),
-	    ],
-	    ..default()
-	}
+        &format!("{lp}_set_flag"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::setFlag",
+            is_mut: true,
+            args: &[("BuilderFlag", "flag")],
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_flag"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getFlag",
-	    ret_type: ReturnType::Atomic("bool"),
-	    args: &[
-		("BuilderFlag", "flag"),
-	    ],
-	    ..default()
-	}
+        &format!("{lp}_get_flag"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getFlag",
+            ret_type: ReturnType::Atomic("bool"),
+            args: &[("BuilderFlag", "flag")],
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_set_default_device_type"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::setDefaultDeviceType",
-	    is_mut: true,
-	    args: &[
-		("DeviceType", "deviceType"),
-	    ],
-	    ..default()
-	}
+        &format!("{lp}_set_default_device_type"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::setDefaultDeviceType",
+            is_mut: true,
+            args: &[("DeviceType", "deviceType")],
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_default_device_type"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getDefaultDeviceType",
-	    ret_type: ReturnType::Atomic("DeviceType"),
-	    ..default()
-	}
+        &format!("{lp}_get_default_device_type"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getDefaultDeviceType",
+            ret_type: ReturnType::Atomic("DeviceType"),
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_dla_core"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getDLACore",
-	    ret_type: ReturnType::Atomic("int32_t"),
-	    ..default()
-	}
+        &format!("{lp}_get_dla_core"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getDLACore",
+            ret_type: ReturnType::Atomic("int32_t"),
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_set_dla_core"),
-	FnSig {
-	    cls: Some(cls),
-	    is_mut: true,
-	    c_fn: "&$C::setDLACore",
-	    args: &[("int32_t", "dlaCore")],
-	    ..default()
-	}
+        &format!("{lp}_set_dla_core"),
+        FnSig {
+            cls: Some(cls),
+            is_mut: true,
+            c_fn: "&$C::setDLACore",
+            args: &[("int32_t", "dlaCore")],
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_set_profile_stream"),
-	FnSig {
-	    cls: Some(cls),
-	    is_mut: true,
-	    c_fn: "&$C::setProfileStream",
-	    args: &[("const cudaStream_t", "stream")],
-	    ..default()
-	}
+        &format!("{lp}_set_profile_stream"),
+        FnSig {
+            cls: Some(cls),
+            is_mut: true,
+            c_fn: "&$C::setProfileStream",
+            args: &[("const cudaStream_t", "stream")],
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_profile_stream"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getProfileStream",
-	    ret_type: ReturnType::Atomic("cudaStream_t"),
-	    ..default()
-	}
+        &format!("{lp}_get_profile_stream"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getProfileStream",
+            ret_type: ReturnType::Atomic("cudaStream_t"),
+            ..default()
+        },
     ));
-
 }
 
 fn gen_tensor(out: &mut Vec<String>) {
@@ -160,52 +148,46 @@ fn gen_tensor(out: &mut Vec<String>) {
     let lp = format!("{LP}_{cls}");
 
     out.push(genc_fn(
-	&format!("{lp}_dynamic_range_is_set"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::dynamicRangeIsSet",
-	    ret_type: ReturnType::Atomic("bool"),
-	    ..default()
-	}
+        &format!("{lp}_dynamic_range_is_set"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::dynamicRangeIsSet",
+            ret_type: ReturnType::Atomic("bool"),
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_set_dynamic_range"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::setDynamicRange",
-	    is_mut: true,
-	    ret_type: ReturnType::Atomic("bool"),
-	    args: &[
-		("float", "min"),
-		("float", "max"),
-	    ],
-	}
+        &format!("{lp}_set_dynamic_range"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::setDynamicRange",
+            is_mut: true,
+            ret_type: ReturnType::Atomic("bool"),
+            args: &[("float", "min"), ("float", "max")],
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_dimensions"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getDimensions",
-	    ret_type: ReturnType::Atomic("Dims"),
-	    ..default()
-	}
+        &format!("{lp}_get_dimensions"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getDimensions",
+            ret_type: ReturnType::Atomic("Dims"),
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_set_dimensions"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::setDimensions",
-	    is_mut: true,
-	    args: &[
-		("Dims", "dimensions"),
-	    ],
-	    ..default()
-	}
+        &format!("{lp}_set_dimensions"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::setDimensions",
+            is_mut: true,
+            args: &[("Dims", "dimensions")],
+            ..default()
+        },
     ));
-
 }
 
 fn gen_layer(out: &mut Vec<String>) {
@@ -213,59 +195,55 @@ fn gen_layer(out: &mut Vec<String>) {
     let lp = format!("{LP}_{cls}");
 
     out.push(genc_fn(
-	&format!("{lp}_get_nb_inputs"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getNbInputs",
-	    ret_type: ReturnType::Atomic("int32_t"),
-	    ..default()
-	}
+        &format!("{lp}_get_nb_inputs"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getNbInputs",
+            ret_type: ReturnType::Atomic("int32_t"),
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_input"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getInput",
-	    ret_type: ReturnType::Atomic("ITensor*"),
-	    args: &[
-		("int32_t", "index"),
-	    ],
-	    ..default()
-	}
+        &format!("{lp}_get_input"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getInput",
+            ret_type: ReturnType::Atomic("ITensor*"),
+            args: &[("int32_t", "index")],
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_nb_outputs"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getNbOutputs",
-	    ret_type: ReturnType::Atomic("int32_t"),
-	    ..default()
-	}
+        &format!("{lp}_get_nb_outputs"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getNbOutputs",
+            ret_type: ReturnType::Atomic("int32_t"),
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_output"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getOutput",
-	    ret_type: ReturnType::Atomic("ITensor*"),
-	    args: &[
-		("int32_t", "index"),
-	    ],
-	    ..default()
-	}
+        &format!("{lp}_get_output"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getOutput",
+            ret_type: ReturnType::Atomic("ITensor*"),
+            args: &[("int32_t", "index")],
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_type"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getType",
-	    ret_type: ReturnType::Atomic("LayerType"),
-	    ..default()
-	}
+        &format!("{lp}_get_type"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getType",
+            ret_type: ReturnType::Atomic("LayerType"),
+            ..default()
+        },
     ));
 }
 
@@ -275,32 +253,32 @@ fn gen_host_memory(out: &mut Vec<String>) {
     out.push(genc_delete(&format!("{lp}_delete"), cls));
 
     out.push(genc_fn(
-	&format!("{lp}_data"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::data",
-	    ret_type: ReturnType::Atomic("void*"),
-	    ..default()
-	}
+        &format!("{lp}_data"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::data",
+            ret_type: ReturnType::Atomic("void*"),
+            ..default()
+        },
     ));
     out.push(genc_fn(
-	&format!("{lp}_size"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::size",
-	    ret_type: ReturnType::Atomic("size_t"),
-	    ..default()
-	}
+        &format!("{lp}_size"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::size",
+            ret_type: ReturnType::Atomic("size_t"),
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_type"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::type",
-	    ret_type: ReturnType::Atomic("DataType"),
-	    ..default()
-	}
+        &format!("{lp}_type"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::type",
+            ret_type: ReturnType::Atomic("DataType"),
+            ..default()
+        },
     ));
 }
 
@@ -310,74 +288,67 @@ fn gen_network_definition(out: &mut Vec<String>) {
     out.push(genc_delete(&format!("{lp}_delete"), cls));
 
     out.push(genc_fn(
-	&format!("{lp}_get_nb_layers"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getNbLayers",
-	    ret_type: ReturnType::Atomic("int32_t"),
-	    ..default()
-	}
+        &format!("{lp}_get_nb_layers"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getNbLayers",
+            ret_type: ReturnType::Atomic("int32_t"),
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_layer"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getLayer",
-	    ret_type: ReturnType::Atomic("ILayer*"),
-	    args: &[
-		("int32_t", "index"),
-	    ],
-	    ..default()
-	}
+        &format!("{lp}_get_layer"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getLayer",
+            ret_type: ReturnType::Atomic("ILayer*"),
+            args: &[("int32_t", "index")],
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_nb_inputs"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getNbInputs",
-	    ret_type: ReturnType::Atomic("int32_t"),
-	    ..default()
-	}
+        &format!("{lp}_get_nb_inputs"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getNbInputs",
+            ret_type: ReturnType::Atomic("int32_t"),
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_input"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getInput",
-	    ret_type: ReturnType::Atomic("ITensor*"),
-	    args: &[
-		("int32_t", "index"),
-	    ],
-	    ..default()
-	}
+        &format!("{lp}_get_input"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getInput",
+            ret_type: ReturnType::Atomic("ITensor*"),
+            args: &[("int32_t", "index")],
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_nb_outputs"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getNbOutputs",
-	    ret_type: ReturnType::Atomic("int32_t"),
-	    ..default()
-	}
+        &format!("{lp}_get_nb_outputs"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getNbOutputs",
+            ret_type: ReturnType::Atomic("int32_t"),
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_output"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getOutput",
-	    ret_type: ReturnType::Atomic("ITensor*"),
-	    args: &[
-		("int32_t", "index"),
-	    ],
-	    ..default()
-	}
+        &format!("{lp}_get_output"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getOutput",
+            ret_type: ReturnType::Atomic("ITensor*"),
+            args: &[("int32_t", "index")],
+            ..default()
+        },
     ));
-
 }
 
 fn gen_builder(out: &mut Vec<String>) {
@@ -386,63 +357,59 @@ fn gen_builder(out: &mut Vec<String>) {
     out.push(genc_delete(&format!("{lp}_delete"), cls));
 
     out.push(genc_fn(
-	&format!("{LP}_create_infer_builder"),
-	FnSig {
-	    c_fn: "createInferBuilder",
-	    ret_type: ReturnType::Atomic("IBuilder*"),
-	    args: &[
-		("ILogger&", "logger"),
-	    ],
-	    ..default()
-	}
+        &format!("{LP}_create_infer_builder"),
+        FnSig {
+            c_fn: "createInferBuilder",
+            ret_type: ReturnType::Atomic("IBuilder*"),
+            args: &[("ILogger&", "logger")],
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_create_network_v2"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::createNetworkV2",
-	    is_mut: true,
-	    ret_type: ReturnType::Atomic("INetworkDefinition*"),
-	    args: &[
-		("NetworkDefinitionCreationFlags", "flags"),
-	    ],
-	}
+        &format!("{lp}_create_network_v2"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::createNetworkV2",
+            is_mut: true,
+            ret_type: ReturnType::Atomic("INetworkDefinition*"),
+            args: &[("NetworkDefinitionCreationFlags", "flags")],
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_create_builder_config"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::createBuilderConfig",
-	    is_mut: true,
-	    ret_type: ReturnType::Atomic("IBuilderConfig*"),
-	    ..default()
-	}
+        &format!("{lp}_create_builder_config"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::createBuilderConfig",
+            is_mut: true,
+            ret_type: ReturnType::Atomic("IBuilderConfig*"),
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_nb_dla_cores"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getNbDLACores",
-	    ret_type: ReturnType::Atomic("int32_t"),
-	    ..default()
-	}
+        &format!("{lp}_get_nb_dla_cores"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getNbDLACores",
+            ret_type: ReturnType::Atomic("int32_t"),
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_build_serialized_network"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::buildSerializedNetwork",
-	    is_mut: true,
-	    ret_type: ReturnType::Atomic("IHostMemory*"),
-	    args: &[
-		("INetworkDefinition&", "network"),
-		("IBuilderConfig&", "config"),
-	    ]
-	}
+        &format!("{lp}_build_serialized_network"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::buildSerializedNetwork",
+            is_mut: true,
+            ret_type: ReturnType::Atomic("IHostMemory*"),
+            args: &[
+                ("INetworkDefinition&", "network"),
+                ("IBuilderConfig&", "config"),
+            ],
+        },
     ));
 }
 
@@ -452,27 +419,24 @@ fn gen_runtime(out: &mut Vec<String>) {
     out.push(genc_delete(&format!("{lp}_delete"), cls));
 
     out.push(genc_fn(
-	&format!("{LP}_create_infer_runtime"),
-	FnSig {
-	    c_fn: "createInferRuntime",
-	    args: &[("ILogger&", "logger")],
-	    ret_type: ReturnType::Atomic("IRuntime*"),
+        &format!("{LP}_create_infer_runtime"),
+        FnSig {
+            c_fn: "createInferRuntime",
+            args: &[("ILogger&", "logger")],
+            ret_type: ReturnType::Atomic("IRuntime*"),
             ..default()
-	}
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_deserialize_cuda_engine"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::deserializeCudaEngine",
-	    is_mut: true,
-	    ret_type: ReturnType::Atomic("ICudaEngine*"),
-	    args: &[
-		("void const*", "blob"),
-		("size_t", "size"),
-	    ],
-	}
+        &format!("{lp}_deserialize_cuda_engine"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::deserializeCudaEngine",
+            is_mut: true,
+            ret_type: ReturnType::Atomic("ICudaEngine*"),
+            args: &[("void const*", "blob"), ("size_t", "size")],
+        },
     ));
 }
 
@@ -482,102 +446,101 @@ fn gen_cuda_engine(out: &mut Vec<String>) {
     out.push(genc_delete(&format!("{lp}_delete"), cls));
 
     out.push(genc_fn(
-	&format!("{lp}_create_execution_context"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::createExecutionContext",
-	    is_mut: true,
-	    ret_type: ReturnType::Atomic("IExecutionContext*"),
-	    ..default()
-	}
+        &format!("{lp}_create_execution_context"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::createExecutionContext",
+            is_mut: true,
+            ret_type: ReturnType::Atomic("IExecutionContext*"),
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_nb_bindings"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getNbBindings",
-	    ret_type: ReturnType::Atomic("int32_t"),
-	    ..default()
-	}
+        &format!("{lp}_get_nb_bindings"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getNbBindings",
+            ret_type: ReturnType::Atomic("int32_t"),
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_binding_index"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getBindingIndex",
-	    ret_type: ReturnType::Atomic("int32_t"),
-	    args: &[("const char*", "name")],
-	    ..default()
-	}
+        &format!("{lp}_get_binding_index"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getBindingIndex",
+            ret_type: ReturnType::Atomic("int32_t"),
+            args: &[("const char*", "name")],
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_binding_name"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getBindingName",
-	    ret_type: ReturnType::Atomic("const char*"),
-	    args: &[("int32_t", "index")],
-	    ..default()
-	}
+        &format!("{lp}_get_binding_name"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getBindingName",
+            ret_type: ReturnType::Atomic("const char*"),
+            args: &[("int32_t", "index")],
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_has_implicit_batch_dimension"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::hasImplicitBatchDimension",
-	    ret_type: ReturnType::Atomic("bool"),
-	    ..default()
-	}
+        &format!("{lp}_has_implicit_batch_dimension"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::hasImplicitBatchDimension",
+            ret_type: ReturnType::Atomic("bool"),
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_binding_dimensions"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getBindingDimensions",
-	    ret_type: ReturnType::Atomic("Dims"),
-	    args: &[("int32_t", "index")],
-	    ..default()
-	}
+        &format!("{lp}_get_binding_dimensions"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getBindingDimensions",
+            ret_type: ReturnType::Atomic("Dims"),
+            args: &[("int32_t", "index")],
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_binding_data_type"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getBindingDataType",
-	    ret_type: ReturnType::Atomic("DataType"),
-	    args: &[("int32_t", "index")],
-	    ..default()
-	}
+        &format!("{lp}_get_binding_data_type"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getBindingDataType",
+            ret_type: ReturnType::Atomic("DataType"),
+            args: &[("int32_t", "index")],
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_binding_vectorized_dim"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getBindingVectorizedDim",
-	    ret_type: ReturnType::Atomic("int32_t"),
-	    args: &[("int32_t", "index")],
-	    ..default()
-	}
+        &format!("{lp}_get_binding_vectorized_dim"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getBindingVectorizedDim",
+            ret_type: ReturnType::Atomic("int32_t"),
+            args: &[("int32_t", "index")],
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_binding_components_per_element"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getBindingComponentsPerElement",
-	    ret_type: ReturnType::Atomic("int32_t"),
-	    args: &[("int32_t", "index")],
-	    ..default()
-	}
+        &format!("{lp}_get_binding_components_per_element"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getBindingComponentsPerElement",
+            ret_type: ReturnType::Atomic("int32_t"),
+            args: &[("int32_t", "index")],
+            ..default()
+        },
     ));
-
 }
 
 fn gen_execution_context(out: &mut Vec<String>) {
@@ -586,27 +549,26 @@ fn gen_execution_context(out: &mut Vec<String>) {
     out.push(genc_delete(&format!("{lp}_delete"), cls));
 
     out.push(genc_fn(
-	&format!("{lp}_get_binding_dimensions"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getBindingDimensions",
-	    ret_type: ReturnType::Atomic("Dims"),
-	    args: &[("int32_t", "index")],
-	    ..default()
-	}
+        &format!("{lp}_get_binding_dimensions"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getBindingDimensions",
+            ret_type: ReturnType::Atomic("Dims"),
+            args: &[("int32_t", "index")],
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_execute_v2"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::executeV2",
-	    is_mut: true,
-	    ret_type: ReturnType::Atomic("bool"),
-	    args: &[("void* const*", "bindings")],
-	}
+        &format!("{lp}_execute_v2"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::executeV2",
+            is_mut: true,
+            ret_type: ReturnType::Atomic("bool"),
+            args: &[("void* const*", "bindings")],
+        },
     ));
-
 }
 
 fn gen_onnx_parser(out: &mut Vec<String>) {
@@ -615,63 +577,55 @@ fn gen_onnx_parser(out: &mut Vec<String>) {
     out.push(genc_delete(&format!("{lp}_delete"), cls));
 
     out.push(genc_fn(
-	&format!("{LP}_createOnnxParser"),
-	FnSig {
-	    c_fn: "nvonnxparser::createParser",
-	    ret_type: ReturnType::Atomic("nvonnxparser::IParser*"),
-	    args: &[
-		("INetworkDefinition&", "network"),
-		("ILogger&", "logger"),
-	    ],
-	    ..default()
-	}
+        &format!("{LP}_createOnnxParser"),
+        FnSig {
+            c_fn: "nvonnxparser::createParser",
+            ret_type: ReturnType::Atomic("nvonnxparser::IParser*"),
+            args: &[("INetworkDefinition&", "network"), ("ILogger&", "logger")],
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_parseFromFile"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::parseFromFile",
-	    is_mut: true,
-	    ret_type: ReturnType::Atomic("bool"),
-	    args: &[
-		("const char*", "fname"),
-		("int", "verbosity"),
-	    ],
-	}
+        &format!("{lp}_parseFromFile"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::parseFromFile",
+            is_mut: true,
+            ret_type: ReturnType::Atomic("bool"),
+            args: &[("const char*", "fname"), ("int", "verbosity")],
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_clearErrors"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::clearErrors",
-	    is_mut: true,
-	    ..default()
-	}
+        &format!("{lp}_clearErrors"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::clearErrors",
+            is_mut: true,
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_get_nb_errors"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getNbErrors",
-	    ret_type: ReturnType::Atomic("int"),
-	    ..default()
-	}
+        &format!("{lp}_get_nb_errors"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getNbErrors",
+            ret_type: ReturnType::Atomic("int"),
+            ..default()
+        },
     ));
 
     out.push(genc_fn(
-	&format!("{lp}_getError"),
-	FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::getError",
-	    ret_type: ReturnType::Atomic("OnnxIParserError const*"),
-	    args: &[
-		("int", "index"),
-	    ],
-	    ..default()
-	}
+        &format!("{lp}_getError"),
+        FnSig {
+            cls: Some(cls),
+            c_fn: "&$C::getError",
+            ret_type: ReturnType::Atomic("OnnxIParserError const*"),
+            args: &[("int", "index")],
+            ..default()
+        },
     ));
 }
 
@@ -747,7 +701,7 @@ mod tests {
     use super::*;
     #[test]
     fn test_basic() {
-	let out = genc_fns();
-	println!("{}", out[0]);
+        let out = genc_fns();
+        println!("{}", out[0]);
     }
 }

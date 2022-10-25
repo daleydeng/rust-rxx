@@ -1,25 +1,26 @@
+use anyhow::Result;
+use lazy_static::lazy_static;
+use regex::Regex;
+use std::collections::HashSet;
 use std::env;
 use std::fs::{self, File};
 use std::io::{self, BufRead};
 use std::path::PathBuf;
-use anyhow::Result;
-use std::collections::HashSet;
-use lazy_static::lazy_static;
-use regex::Regex;
 
-fn extract_enum_names(fname: &str) -> Result<HashSet<String>>{
-    lazy_static!{
-	static ref RE: Regex = Regex::new(r"^enum class (\w+)\s*:").expect("regex creation failed!");
+fn extract_enum_names(fname: &str) -> Result<HashSet<String>> {
+    lazy_static! {
+        static ref RE: Regex =
+            Regex::new(r"^enum class (\w+)\s*:").expect("regex creation failed!");
     }
     let mut out = HashSet::new();
     let file = File::open(fname)?;
     for l in io::BufReader::new(file).lines() {
-	let l = l?;
-	let cap = RE.captures(&l);
-	let Some(cap) = cap else {
+        let l = l?;
+        let cap = RE.captures(&l);
+        let Some(cap) = cap else {
 	    continue;
 	};
-	out.insert(cap[1].into());
+        out.insert(cap[1].into());
     }
     Ok(out)
 }
@@ -34,39 +35,45 @@ fn main() -> Result<()> {
 
     let mut builder = bindgen::builder()
         .header("wrapper.h")
-        .default_enum_style(bindgen::EnumVariation::Rust{
-	    non_exhaustive: false
-	})
+        .default_enum_style(bindgen::EnumVariation::Rust {
+            non_exhaustive: false,
+        })
         .enable_cxx_namespaces()
-        .clang_args(&[&format!("-I{}", inc_dir.to_str().expect("to_str failed")), "-x", "c++"])
-	;
+        .disable_untagged_union()
+        .clang_args(&[
+            &format!("-I{}", inc_dir.to_str().expect("to_str failed")),
+            "-x",
+            "c++",
+        ]);
 
-    for f in [
-	"NvInferVersion.h",
-	"NvInferLegacyDims.h"
-    ] {
-	builder = builder.allowlist_file(inc_dir.join(f).to_str().expect("to_str failed"));
+    for f in ["NvInferVersion.h", "NvInferLegacyDims.h"] {
+        builder = builder.allowlist_file(inc_dir.join(f).to_str().expect("to_str failed"));
     }
 
-    for f in ["NvInfer.h", "NvInferRuntime.h", "NvInferRuntimeCommon.h", "NvOnnxParser.h"] {
-	for n in extract_enum_names(inc_dir.join(f).to_str().expect("to_str failed"))? {
-	    builder = builder.allowlist_type(format!("nvinfer1::{n}"));
-	}
+    for f in [
+        "NvInfer.h",
+        "NvInferRuntime.h",
+        "NvInferRuntimeCommon.h",
+        "NvOnnxParser.h",
+    ] {
+        for n in extract_enum_names(inc_dir.join(f).to_str().expect("to_str failed"))? {
+            builder = builder.allowlist_type(format!("nvinfer1::{n}"));
+        }
     }
 
     for f in ["NvOnnxParser.h"] {
-	for n in extract_enum_names(inc_dir.join(f).to_str().expect("to_str failed"))? {
-	    builder = builder.allowlist_type(format!("nvonnxparser::{n}"));
-	}
+        for n in extract_enum_names(inc_dir.join(f).to_str().expect("to_str failed"))? {
+            builder = builder.allowlist_type(format!("nvonnxparser::{n}"));
+        }
     }
 
     for t in [
-	"nvinfer1::ILogger",
-	"nvinfer1::IBuilder",
-	"nvinfer1::IRuntime",
-	"nvonnxparser::IParser",
+        "nvinfer1::ILogger",
+        "nvinfer1::IBuilder",
+        "nvinfer1::IRuntime",
+        "nvonnxparser::IParser",
     ] {
-	builder = builder.allowlist_type(t);
+        builder = builder.allowlist_type(t);
     }
 
     let bindings = builder.generate()?;

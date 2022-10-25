@@ -1,11 +1,11 @@
 #![feature(default_free_fn)]
-use std::path::{Path, PathBuf};
-use std::collections::HashSet;
-use std::sync::Once;
-use std::default::default;
 use anyhow::{bail, Result};
-use rxx_build::*;
 use eigen_rxx_build::*;
+use rxx_build::*;
+use std::collections::HashSet;
+use std::default::default;
+use std::path::{Path, PathBuf};
+use std::sync::Once;
 
 const C_HDR: &str = include_str!("../include/wrapper.hh");
 const NAME: &str = "sophus_rxx";
@@ -16,110 +16,145 @@ pub fn genc_fns() -> Vec<String> {
     let lp = NAME;
 
     for (tp, t) in [("double", "d"), ("float", "f")] {
-	let cls = &format!("SO2{t}");
-	for (val_tp, val) in [("int","DoF"), ("int", "num_parameters"), ("int", "N"), ("int", "Dim")] {
-	    out.push(genc_get_val(
-		&format!("{lp}_get_{cls}_{val}"),
-		ReturnType::Atomic(val_tp),
-		&format!("{cls}::{val}"),
-	    ));
-	}
+        let cls = &format!("SO2{t}");
+        for (val_tp, val) in [
+            ("int", "DoF"),
+            ("int", "num_parameters"),
+            ("int", "N"),
+            ("int", "Dim"),
+        ] {
+            out.push(genc_get_val(
+                &format!("{lp}_get_{cls}_{val}"),
+                ReturnType::Atomic(val_tp),
+                &format!("{cls}::{val}"),
+            ));
+        }
 
-	out.push(genc_fn(&format!("{lp}_{cls}_Adj"), FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::Adj",
-	    ret_type: ReturnType::Atomic(tp),
-	    ..default()
-	}));
+        out.push(genc_fn(
+            &format!("{lp}_{cls}_Adj"),
+            FnSig {
+                cls: Some(cls),
+                c_fn: "&$C::Adj",
+                ret_type: ReturnType::Atomic(tp),
+                ..default()
+            },
+        ));
 
-	// cast, data
-	out.push(genc_fn(&format!("{lp}_{cls}_inverse"), FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::inverse",
-	    ret_type: ReturnType::Object(cls),
-	    ..default()
-	}));
+        // cast, data
+        out.push(genc_fn(
+            &format!("{lp}_{cls}_inverse"),
+            FnSig {
+                cls: Some(cls),
+                c_fn: "&$C::inverse",
+                ret_type: ReturnType::Object(cls),
+                ..default()
+            },
+        ));
 
-	out.push(genc_fn(&format!("{lp}_{cls}_log"), FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::log",
-	    ret_type: ReturnType::Atomic(tp),
-	    ..default()
-	}));
+        out.push(genc_fn(
+            &format!("{lp}_{cls}_log"),
+            FnSig {
+                cls: Some(cls),
+                c_fn: "&$C::log",
+                ret_type: ReturnType::Atomic(tp),
+                ..default()
+            },
+        ));
 
-	out.push(genc_fn(&format!("{lp}_{cls}_normalize"), FnSig {
-	    cls: Some(cls),
-	    is_mut: true,
-	    c_fn: "&$C::normalize",
-	    ..default()
-	}));
+        out.push(genc_fn(
+            &format!("{lp}_{cls}_normalize"),
+            FnSig {
+                cls: Some(cls),
+                is_mut: true,
+                c_fn: "&$C::normalize",
+                ..default()
+            },
+        ));
 
-	out.push(genc_fn(&format!("{lp}_{cls}_matrix"), FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::matrix",
-	    ret_type: ReturnType::Object("$C::Transformation"),
-	    ..default()
-	}));
+        out.push(genc_fn(
+            &format!("{lp}_{cls}_matrix"),
+            FnSig {
+                cls: Some(cls),
+                c_fn: "&$C::matrix",
+                ret_type: ReturnType::Object("$C::Transformation"),
+                ..default()
+            },
+        ));
 
-	// operator=
-	// operator*
-	out.push(genc_fn(&format!("{lp}_{cls}_mul"), FnSig {
-	    c_fn: "op_mul",
-	    ret_type: ReturnType::Object(cls),
-	    args: &[
-		(&format!("{cls} const&"), "self"),
-		(&format!("{cls} const&"), "other"),
-	    ],
-	    ..default()
-	}));
+        // operator=
+        // operator*
+        out.push(genc_fn(
+            &format!("{lp}_{cls}_mul"),
+            FnSig {
+                c_fn: "op_mul",
+                ret_type: ReturnType::Object(cls),
+                args: &[
+                    (&format!("{cls} const&"), "self"),
+                    (&format!("{cls} const&"), "other"),
+                ],
+                ..default()
+            },
+        ));
 
-	out.push(genc_fn(&format!("{lp}_{cls}_mul_point"), FnSig {
-	    c_fn: "op_mul",
-	    ret_type: ReturnType::Object(&format!("{cls}::Point")),
-	    args: &[
-		(&format!("{cls} const&"), "self"),
-		(&format!("{cls}::Point const&"), "other"),
-	    ],
-	    ..default()
-	}));
+        out.push(genc_fn(
+            &format!("{lp}_{cls}_mul_point"),
+            FnSig {
+                c_fn: "op_mul",
+                ret_type: ReturnType::Object(&format!("{cls}::Point")),
+                args: &[
+                    (&format!("{cls} const&"), "self"),
+                    (&format!("{cls}::Point const&"), "other"),
+                ],
+                ..default()
+            },
+        ));
 
-	out.push(genc_fn(&format!("{lp}_{cls}_mul_hpoint"), FnSig {
-	    c_fn: "op_mul",
-	    ret_type: ReturnType::Object(&format!("{cls}::HomogeneousPoint")),
-	    args: &[
-		(&format!("{cls} const&"), "self"),
-		(&format!("{cls}::HomogeneousPoint const&"), "other"),
-	    ],
-	    ..default()
-	}));
-	// end operator*
+        out.push(genc_fn(
+            &format!("{lp}_{cls}_mul_hpoint"),
+            FnSig {
+                c_fn: "op_mul",
+                ret_type: ReturnType::Object(&format!("{cls}::HomogeneousPoint")),
+                args: &[
+                    (&format!("{cls} const&"), "self"),
+                    (&format!("{cls}::HomogeneousPoint const&"), "other"),
+                ],
+                ..default()
+            },
+        ));
+        // end operator*
 
-	// Dx_this_mul_exp_x_at_0
-	out.push(genc_fn(&format!("{lp}_{cls}_params"), FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::params",
-	    ret_type: ReturnType::Object("Matrix<$C::Scalar, $C::num_parameters, 1>"),
-	    ..default()
-	}));
+        // Dx_this_mul_exp_x_at_0
+        out.push(genc_fn(
+            &format!("{lp}_{cls}_params"),
+            FnSig {
+                cls: Some(cls),
+                c_fn: "&$C::params",
+                ret_type: ReturnType::Object("Matrix<$C::Scalar, $C::num_parameters, 1>"),
+                ..default()
+            },
+        ));
 
-	// Dx_log_this_inv_by_x_at_this
-	out.push(genc_fn(&format!("{lp}_{cls}_setComplex"), FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::setComplex",
-	    is_mut: true,
-	    args: &[
-		("$C::Point const&", "v"),
-	    ],
-	    ..default()
-	}));
+        // Dx_log_this_inv_by_x_at_this
+        out.push(genc_fn(
+            &format!("{lp}_{cls}_setComplex"),
+            FnSig {
+                cls: Some(cls),
+                c_fn: "&$C::setComplex",
+                is_mut: true,
+                args: &[("$C::Point const&", "v")],
+                ..default()
+            },
+        ));
 
-	out.push(genc_fn(&format!("{lp}_{cls}_unit_complex"), FnSig {
-	    cls: Some(cls),
-	    c_fn: "&$C::unit_complex",
-	    ret_type: ReturnType::Atomic("$C::ComplexT const &"),
-	    ..default()
-	}));
-
+        out.push(genc_fn(
+            &format!("{lp}_{cls}_unit_complex"),
+            FnSig {
+                cls: Some(cls),
+                c_fn: "&$C::unit_complex",
+                ret_type: ReturnType::Atomic("$C::ComplexT const &"),
+                ..default()
+            },
+        ));
     }
 
     out

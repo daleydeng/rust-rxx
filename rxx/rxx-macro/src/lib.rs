@@ -59,8 +59,8 @@ pub fn genc_fn(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 );
             }
             m => {
-		tts.push(m.to_token_stream());
-	    },
+                tts.push(m.to_token_stream());
+            }
         }
     }
 
@@ -68,7 +68,7 @@ pub fn genc_fn(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     {
         let mut __out = Vec::new();
         #(#tts)*
-	__out
+    __out
     }
     };
     tt.into()

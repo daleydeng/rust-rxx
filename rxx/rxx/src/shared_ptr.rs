@@ -5,7 +5,10 @@ use core::ops::{Deref, DerefMut};
 use core::pin::Pin;
 use std::mem::MaybeUninit;
 
-pub trait SharedPtrTarget where Self: Sized {
+pub trait SharedPtrTarget
+where
+    Self: Sized,
+{
     unsafe fn __drop(this: &mut SharedPtr<Self>);
     unsafe fn __clone(this: &SharedPtr<Self>, out: *mut SharedPtr<Self>);
 }
@@ -68,7 +71,7 @@ impl<T: SharedPtrTarget> SharedPtr<T> {
     {
         let mut out = MaybeUninit::<WeakPtr<T>>::uninit();
         unsafe {
-            T::__downgrade(self,out.as_mut_ptr());
+            T::__downgrade(self, out.as_mut_ptr());
             out.assume_init()
         }
     }
@@ -81,10 +84,7 @@ impl<T: SharedPtrTarget> Clone for SharedPtr<T> {
     fn clone(&self) -> Self {
         let mut out = MaybeUninit::<Self>::uninit();
         unsafe {
-            T::__clone(
-		self,
-                out.as_mut_ptr(),
-            );
+            T::__clone(self, out.as_mut_ptr());
             out.assume_init()
         }
     }
@@ -92,9 +92,7 @@ impl<T: SharedPtrTarget> Clone for SharedPtr<T> {
 
 impl<T: SharedPtrTarget> Drop for SharedPtr<T> {
     fn drop(&mut self) {
-        unsafe {
-            T::__drop(self)
-        }
+        unsafe { T::__drop(self) }
     }
 }
 

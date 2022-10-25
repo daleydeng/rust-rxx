@@ -4,8 +4,8 @@ macro_rules! impl_wrapper_lt {
         paste::paste! {
             #[repr(C)]
             pub struct $name<'a> {
-		_obj: $ffi_ty,
-		_pd: std::marker::PhantomData<&'a ()>
+        _obj: $ffi_ty,
+        _pd: std::marker::PhantomData<&'a ()>
             }
         }
     };
@@ -19,7 +19,7 @@ macro_rules! impl_wrapper_lt {
 macro_rules! impl_raii_lt {
     ($name:ident, $ffi_ty:ty) => {
         paste::paste! {
-	    impl_wrapper_lt!($name, $ffi_ty);
+        impl_wrapper_lt!($name, $ffi_ty);
             genrs_pointer_drop!([<tensorrt_rxx_ $name _delete>], $name<'_>);
         }
     };
@@ -35,7 +35,7 @@ macro_rules! impl_wrapper {
         paste::paste! {
             #[repr(C)]
             pub struct $name {
-		_obj: $ffi_ty,
+        _obj: $ffi_ty,
             }
         }
     };
@@ -49,7 +49,7 @@ macro_rules! impl_wrapper {
 macro_rules! impl_raii {
     ($name:ident, $ffi_ty:ty) => {
         paste::paste! {
-	    impl_wrapper!($name, $ffi_ty);
+        impl_wrapper!($name, $ffi_ty);
             genrs_pointer_drop!([<tensorrt_rxx_ $name _delete>], $name);
         }
     };

@@ -3,9 +3,9 @@ use std::collections::HashMap;
 #[test]
 fn test_genc() {
     let s = rxx_macro::genc_fn!(
-	let tpl_vars = HashMap::from([
-	    ("lp".to_owned(), "rxx"),
-	]);
+    let tpl_vars = HashMap::from([
+        ("lp".to_owned(), "rxx"),
+    ]);
 
         #[ffi(link_name = "{lp}_MapMut_Matrix3d_new")]
         fn MapMut_fixed_new<Matrix3d, double>(data: *mut double) -> Eigen::Map<Matrix3d> {}

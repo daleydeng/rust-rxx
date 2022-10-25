@@ -30,59 +30,59 @@ genrs_weak_ptr!(rxx_weak_string, crate::CxxString);
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use std::collections::HashMap;
     use std::marker::PhantomData;
     use std::mem::MaybeUninit;
-    use std::collections::HashMap;
-    use super::*;
 
     rxx_macro::genrs_fn!(
-	pub fn rxx_dummy_cpp_new_vector_i64(a: i32) -> CxxVector<i64> {}
-	pub fn rxx_dummy_cpp_add_vector_i64(a: &mut CxxVector<i64>, i: i32) {}
-	#[ffi(atomic)]
-	pub fn rxx_dummy_cpp_addret_vector_i64(a: &mut CxxVector<i64>, i: i32) -> i64 {}
-	pub fn rxx_dummy_cpp_get_vector_i64(a: &CxxVector<i64>) -> i64 {}
-	pub fn rxx_dummy_cpp_getvoid_vector_i64(a: &CxxVector<i64>, i: i32) {}
-	#[ffi(atomic)]
-	pub fn rxx_dummy_cpp_getref_vector_i64<'a>(a: &'a CxxVector<i64>, i: i32) -> &'a i64 {}
+    pub fn rxx_dummy_cpp_new_vector_i64(a: i32) -> CxxVector<i64> {}
+    pub fn rxx_dummy_cpp_add_vector_i64(a: &mut CxxVector<i64>, i: i32) {}
+    #[ffi(atomic)]
+    pub fn rxx_dummy_cpp_addret_vector_i64(a: &mut CxxVector<i64>, i: i32) -> i64 {}
+    pub fn rxx_dummy_cpp_get_vector_i64(a: &CxxVector<i64>) -> i64 {}
+    pub fn rxx_dummy_cpp_getvoid_vector_i64(a: &CxxVector<i64>, i: i32) {}
+    #[ffi(atomic)]
+    pub fn rxx_dummy_cpp_getref_vector_i64<'a>(a: &'a CxxVector<i64>, i: i32) -> &'a i64 {}
 
-	impl CxxVector<i64> {
-	    #[ffi(link_name="rxx_dummy_cpp_add_vector_i64")]
-	    pub fn add(&mut self, a: i32) {}
-	    #[ffi(link_name="rxx_dummy_cpp_addret_vector_i64", atomic)]
-	    pub fn addret(&mut self, a: i32) -> i64 {}
-	    #[ffi(link_name="rxx_dummy_cpp_get_vector_i64")]
-	    pub fn get1(&self) -> i64 {}
-	    #[ffi(link_name="rxx_dummy_cpp_getvoid_vector_i64")]
-	    pub fn getvoid(&self, a: i32) {}
-	    #[ffi(link_name="rxx_dummy_cpp_getref_vector_i64", atomic)]
-	    pub fn getref(&self, a: i32) -> &i64 {}
-	}
+    impl CxxVector<i64> {
+        #[ffi(link_name="rxx_dummy_cpp_add_vector_i64")]
+        pub fn add(&mut self, a: i32) {}
+        #[ffi(link_name="rxx_dummy_cpp_addret_vector_i64", atomic)]
+        pub fn addret(&mut self, a: i32) -> i64 {}
+        #[ffi(link_name="rxx_dummy_cpp_get_vector_i64")]
+        pub fn get1(&self) -> i64 {}
+        #[ffi(link_name="rxx_dummy_cpp_getvoid_vector_i64")]
+        pub fn getvoid(&self, a: i32) {}
+        #[ffi(link_name="rxx_dummy_cpp_getref_vector_i64", atomic)]
+        pub fn getref(&self, a: i32) -> &i64 {}
+    }
 
-	#[ffi(link_name="rxx_dummy_new_unique_i64")]
-	fn new_unique_i64(v: i64) -> UniquePtr<i64> {}
-	#[ffi(link_name="rxx_dummy_new_shared_i64")]
-	fn new_shared_i64(v: i64) -> SharedPtr<i64> {}
+    #[ffi(link_name="rxx_dummy_new_unique_i64")]
+    fn new_unique_i64(v: i64) -> UniquePtr<i64> {}
+    #[ffi(link_name="rxx_dummy_new_shared_i64")]
+    fn new_shared_i64(v: i64) -> SharedPtr<i64> {}
 
-	#[ffi(link_name = "rxx_dummy_new_unique_string")]
-	fn new_unique_string() -> UniquePtr<CxxString> {}
-	#[ffi(link_name = "rxx_dummy_new_shared_string")]
-	fn new_shared_string() -> SharedPtr<CxxString> {}
+    #[ffi(link_name = "rxx_dummy_new_unique_string")]
+    fn new_unique_string() -> UniquePtr<CxxString> {}
+    #[ffi(link_name = "rxx_dummy_new_shared_string")]
+    fn new_shared_string() -> SharedPtr<CxxString> {}
 
-	fn new_vector_i64(data: &[i64]) -> CxxVector<i64> {
+    fn new_vector_i64(data: &[i64]) -> CxxVector<i64> {
             extern "C" {
-		#[link_name = "rxx_dummy_new_vector_i64"]
-		fn __func(data: *const i64, len: usize, out: *mut CxxVector<i64>);
+        #[link_name = "rxx_dummy_new_vector_i64"]
+        fn __func(data: *const i64, len: usize, out: *mut CxxVector<i64>);
             }
 
             let mut out = MaybeUninit::<CxxVector<i64>>::uninit();
             unsafe {
-		__func(data.as_ptr(), data.len(), out.as_mut_ptr());
-		out.assume_init()
+        __func(data.as_ptr(), data.len(), out.as_mut_ptr());
+        out.assume_init()
             }
-	}
+    }
 
-	#[ffi(link_name = "rxx_dummy_i64_new", new_ptr)]
-	pub fn dummy_i64_new() -> CxxPointer<i64> {}
+    #[ffi(link_name = "rxx_dummy_i64_new", new_ptr)]
+    pub fn dummy_i64_new() -> CxxPointer<i64> {}
 
     );
 
@@ -100,16 +100,16 @@ mod tests {
     }
 
     rxx_macro::genrs_fn!(
-	impl<'a> Dummy<'a> {
-	    #[ffi(link_name="rxx_Dummy_get", atomic)]
-	    pub fn get(&self, idx: usize) -> i64 {}
+        impl<'a> Dummy<'a> {
+            #[ffi(link_name = "rxx_Dummy_get", atomic)]
+            pub fn get(&self, idx: usize) -> i64 {}
 
-	    #[ffi(link_name="rxx_Dummy_get_mut", atomic)]
-	    pub fn get_mut(&mut self, idx: usize) -> &'a mut i64 {}
+            #[ffi(link_name = "rxx_Dummy_get_mut", atomic)]
+            pub fn get_mut(&mut self, idx: usize) -> &'a mut i64 {}
 
-	    #[ffi(link_name="rxx_Dummy_add")]
-	    pub fn add(&mut self, val: i64) {}
-	}
+            #[ffi(link_name = "rxx_Dummy_add")]
+            pub fn add(&mut self, val: i64) {}
+        }
     );
 
     #[test]
@@ -255,6 +255,6 @@ mod tests {
 
     #[test]
     fn test_pointer() {
-	let _ = dummy_i64_new();
+        let _ = dummy_i64_new();
     }
 }

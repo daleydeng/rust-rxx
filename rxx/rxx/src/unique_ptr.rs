@@ -4,7 +4,10 @@ use core::mem;
 use core::ops::{Deref, DerefMut};
 use core::pin::Pin;
 
-pub trait UniquePtrTarget where Self: Sized {
+pub trait UniquePtrTarget
+where
+    Self: Sized,
+{
     unsafe fn __drop(this: &mut UniquePtr<Self>);
 }
 
@@ -78,9 +81,7 @@ unsafe impl<T> Sync for UniquePtr<T> where T: Sync + UniquePtrTarget {}
 
 impl<T: UniquePtrTarget> Drop for UniquePtr<T> {
     fn drop(&mut self) {
-        unsafe {
-            T::__drop(self)
-        }
+        unsafe { T::__drop(self) }
     }
 }
 
@@ -133,13 +134,13 @@ macro_rules! genrs_unique_ptr {
     ($link_name:ident, $tp:ty) => {
         paste::paste! {
             impl $crate::UniquePtrTarget for $tp {
-		unsafe fn __drop(this: &mut UniquePtr<$tp>) {
+        unsafe fn __drop(this: &mut UniquePtr<$tp>) {
                     extern "C" {
-			#[link_name=stringify!([<$link_name _destroy>])]
-			fn func(this: &mut UniquePtr<$tp>);
+            #[link_name=stringify!([<$link_name _destroy>])]
+            fn func(this: &mut UniquePtr<$tp>);
                     }
                     func(this);
-		}
+        }
             }
         }
     };

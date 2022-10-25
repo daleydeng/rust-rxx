@@ -1,8 +1,8 @@
+use anyhow::{bail, Result};
+use rxx_build::*;
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use std::sync::Once;
-use anyhow::{bail, Result};
-use rxx_build::*;
 
 pub fn genc_file_eigen(fns: &[&str]) -> Result<String> {
     if fns.is_empty() {
@@ -25,7 +25,6 @@ using namespace eigen_rxx;
 
 #[allow(non_snake_case)]
 fn add_fns_Map(lp: &str, cls: &str, out: &mut Vec<String>) {
-
     out.push(genc_fn(
         &format!("{lp}_MapMut_{cls}_new"),
         FnSig {
