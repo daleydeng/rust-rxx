@@ -20,11 +20,11 @@ fn div_up(x: i32, n: i32) -> i32 {
 fn set_all_dynamic_ranges(network: &mut INetworkDefinition, in_range: f32, out_range: f32) {
     let layer_nr = network.get_nb_layers();
     for i in 0..layer_nr {
-        let layer = network.get_layer_mut(i).unwrap();
+        let layer = network.get_layer(i).unwrap();
 
         let inp_nr = layer.get_nb_inputs();
         for j in 0..inp_nr {
-            let input = layer.get_input_mut(j).unwrap();
+            let mut input = layer.get_input(j).unwrap();
             if !input.dynamic_range_is_set() {
                 assert!(input.set_dynamic_range(-in_range, in_range));
             }
@@ -38,7 +38,7 @@ fn set_all_dynamic_ranges(network: &mut INetworkDefinition, in_range: f32, out_r
 
         let oup_nr = layer.get_nb_outputs();
         for j in 0..oup_nr {
-            let output = layer.get_output_mut(j).unwrap();
+            let mut output = layer.get_output(j).unwrap();
 
             if !output.dynamic_range_is_set() {
                 assert!(output.set_dynamic_range(-cur_out_range, cur_out_range));

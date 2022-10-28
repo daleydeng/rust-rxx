@@ -68,7 +68,7 @@ pub fn dump_sources_rxx(src_dir: &Path) -> Result<HashSet<PathBuf>> {
     dump_file_once(&wrapper_f, C_SRC, &ONCE_SRC);
 
     let ffi_f = src_dir.join("ffi.cc");
-    let ffi_code = genc_file_rxx(&[
+    let ffi_code = genc_file_rxx([
         &genc_unique_ptr("rxx_unique_string", "std::unique_ptr<std::string>"),
         &genc_shared_ptr("rxx_shared_string", "std::shared_ptr<std::string>"),
         &genc_weak_ptr(

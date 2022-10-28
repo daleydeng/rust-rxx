@@ -29,7 +29,7 @@ pub fn get_attr(attrs: &[syn::Attribute]) -> syn::Result<Option<syn::MetaList>> 
         if let Some(id) = mp.get_ident() {
             return Err(syn::Error::new(
                 mp.span(),
-                format!("Meta path ({})!= ffi", id),
+                format!("Meta path ({id})!= ffi"),
             ));
         } else {
             return Err(syn::Error::new(mp.span(), "Meta path isnt ident"));

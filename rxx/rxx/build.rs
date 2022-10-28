@@ -24,7 +24,7 @@ fn main() -> Result<()> {
         src_files.insert("csrc/test.cc".into());
 
         for i in ["csrc/test.hh", "csrc/test.cc"] {
-            println!("cargo:rerun-if-changed={}", i);
+            println!("cargo:rerun-if-changed={i}");
         }
 
         genc_file_test = genc_dir.join("ffi_test.cc");

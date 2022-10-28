@@ -95,7 +95,7 @@ pub fn parse_fn(
     let mut ret_mode = ReturnType::Object(());
 
     if !link_prefix.is_empty() {
-        link_name = syn::Ident::new(&format!("{}{}", link_prefix, link_name), link_name.span());
+        link_name = syn::Ident::new(&format!("{link_prefix}{link_name}"), link_name.span());
     }
 
     let tpl_vars = HashMap::from([("LP".to_owned(), link_prefix)]);
@@ -115,7 +115,7 @@ pub fn parse_fn(
                         );
                     } else if key == "link_prefix" {
                         link_name = syn::Ident::new(
-                            &format!("{}{}", val.value(), link_name),
+                            &format!("{}{link_name}", val.value()),
                             link_name.span(),
                         );
                     }
@@ -129,7 +129,7 @@ pub fn parse_fn(
                         ret_mode = ReturnType::NewPtr(());
                     }
                 }
-                m => panic!("uncovered meta here {:?}", m),
+                m => panic!("uncovered meta here {m:?}"),
             }
         }
     }
@@ -146,7 +146,7 @@ pub fn parse_fn(
                 ReturnType::Atomic(_) => ReturnType::Atomic(t1),
                 ReturnType::Object(_) => ReturnType::Object(t1),
                 ReturnType::NewPtr(_) => ReturnType::NewPtr(t1),
-                _ => panic!("ret_mode invalid! {:?}", ret_mode),
+                _ => panic!("ret_mode invalid! {ret_mode:?}"),
             }
         }
     };
@@ -336,7 +336,7 @@ pub fn parse_impl(item_impl: &syn::ItemImpl) -> syn::Result<TokenStream> {
                         }
                     }
                 }
-                m => panic!("uncovered impl meta here {:?}", m),
+                m => panic!("uncovered impl meta here {m:?}"),
             }
         }
     }

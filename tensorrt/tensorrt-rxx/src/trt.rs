@@ -16,6 +16,16 @@ impl_raii_lt!(IRuntime);
 impl_raii_lt!(ICudaEngine);
 impl_raii_lt!(IExecutionContext);
 
+fn read_ptr<T>(ptr: *mut T) -> Option<T> {
+    unsafe {
+	if ptr.is_null() {
+	    None
+	} else {
+	    Some(ptr.read())
+	}
+    }
+}
+
 genrs_fn!(
     #[ffi(link_prefix = "tensorrt_rxx_IHostMemory_")]
     impl IHostMemory {
@@ -85,12 +95,10 @@ genrs_fn!(
         pub fn get_nb_layers(&self) -> i32 {}
 
         #[ffi(atomic, link_name = "{LP}get_layer")]
-        pub unsafe fn __get_layer(&self, index: i32) -> *mut ILayer<'a> {}
-        pub fn get_layer(&self, index: i32) -> Option<&ILayer<'a>> {
-            unsafe { self.__get_layer(index).as_ref() }
-        }
-        pub fn get_layer_mut(&mut self, index: i32) -> Option<&mut ILayer<'a>> {
-            unsafe { self.__get_layer(index).as_mut() }
+        pub fn __get_layer(&self, index: i32) -> *mut ILayer<'a> {}
+
+        pub fn get_layer(&self, index: i32) -> Option<ILayer<'a>> {
+	    read_ptr(self.__get_layer(index))
         }
 
         #[ffi(atomic)]
@@ -99,23 +107,25 @@ genrs_fn!(
         pub fn get_nb_inputs(&self) -> i32 {}
 
         #[ffi(atomic, link_name = "{LP}get_input")]
-        pub unsafe fn __get_input(&self, index: i32) -> *mut ITensor<'a> {}
+        pub fn __get_input(&self, index: i32) -> *mut ITensor<'a> {}
 
-        pub fn get_input(&self, index: i32) -> Option<&ITensor<'a>> {
-            unsafe { self.__get_input(index).as_ref() }
-        }
-        pub fn get_input_mut(&mut self, index: i32) -> Option<&mut ITensor<'a>> {
-            unsafe { self.__get_input(index).as_mut() }
-        }
+	pub fn get_input(&self, index: i32) -> Option<ITensor<'a>> {
+	    read_ptr(self.__get_input(index))
+	}
+
+        // pub fn get_input(&self, index: i32) -> Option<&ITensor<'a>> {
+        //     unsafe { self.__get_input(index).as_ref() }
+        // }
+        // pub fn get_input_mut(&mut self, index: i32) -> Option<&mut ITensor<'a>> {
+        //     unsafe { self.__get_input(index).as_mut() }
+        // }
 
         #[ffi(atomic, link_name = "{LP}get_output")]
-        pub unsafe fn __get_output(&self, index: i32) -> *mut ITensor<'a> {}
-        pub fn get_output(&self, index: i32) -> Option<&ITensor<'a>> {
-            unsafe { self.__get_output(index).as_ref() }
-        }
-        pub fn get_output_mut(&mut self, index: i32) -> Option<&mut ITensor<'a>> {
-            unsafe { self.__get_output(index).as_mut() }
-        }
+        pub fn __get_output(&self, index: i32) -> *mut ITensor<'a> {}
+
+	pub fn get_output(&self, index: i32) -> Option<ITensor<'a>> {
+	    read_ptr(self.__get_output(index))
+	}
     }
 
     #[ffi(link_prefix = "tensorrt_rxx_ILayer_")]
@@ -130,23 +140,17 @@ genrs_fn!(
         pub fn get_nb_inputs(&self) -> i32 {}
 
         #[ffi(atomic, link_name = "{LP}get_input")]
-        pub unsafe fn __get_input(&self, index: i32) -> *mut ITensor<'a> {}
-
-        pub fn get_input(&self, index: i32) -> Option<&ITensor<'a>> {
-            unsafe { self.__get_input(index).as_ref() }
-        }
-        pub fn get_input_mut(&mut self, index: i32) -> Option<&mut ITensor<'a>> {
-            unsafe { self.__get_input(index).as_mut() }
-        }
+        pub fn __get_input(&self, index: i32) -> *mut ITensor<'a> {}
+	pub fn get_input(&self, index: i32) -> Option<ITensor<'a>> {
+	    read_ptr(self.__get_input(index))
+	}
 
         #[ffi(atomic, link_name = "{LP}get_output")]
-        pub unsafe fn __get_output(&self, index: i32) -> *mut ITensor<'a> {}
-        pub fn get_output(&self, index: i32) -> Option<&ITensor<'a>> {
-            unsafe { self.__get_output(index).as_ref() }
-        }
-        pub fn get_output_mut(&mut self, index: i32) -> Option<&mut ITensor<'a>> {
-            unsafe { self.__get_output(index).as_mut() }
-        }
+        pub fn __get_output(&self, index: i32) -> *mut ITensor<'a> {}
+	pub fn get_output(&self, index: i32) -> Option<ITensor<'a>> {
+	    read_ptr(self.__get_output(index))
+	}
+
     }
 
     #[ffi(link_prefix = "tensorrt_rxx_ITensor_")]
@@ -192,10 +196,10 @@ genrs_fn!(
         pub fn get_nb_bindings(&self) -> i32 {}
 
         #[ffi(atomic, link_name = "{LP}get_binding_index")]
-        pub fn __get_binding_index(&self, name: *const c_char) -> i32 {}
+        pub unsafe fn __get_binding_index(&self, name: *const c_char) -> i32 {}
         pub fn get_binding_index(&self, name: &str) -> i32 {
             let name = CString::new(name).unwrap();
-            self.__get_binding_index(name.as_ptr())
+            unsafe {self.__get_binding_index(name.as_ptr())}
         }
 
         #[ffi(atomic, link_name = "{LP}get_binding_name")]
@@ -231,7 +235,7 @@ genrs_fn!(
         pub unsafe fn __execute_v2(&mut self, bindings: *const *mut c_void) -> bool {}
         pub fn execute_v2(
             &mut self,
-            bindings: &mut Vec<cuda_ffi::DeviceMemory>,
+            bindings: &mut [cuda_ffi::DeviceMemory],
         ) -> Result<(), TrtError> {
             unsafe {
                 let bindings = bindings.iter().map(|i| i.as_ptr()).collect::<Vec<_>>();

@@ -87,7 +87,7 @@ pub fn parse_fn(
                         }
                     }
                 }
-                m => panic!("uncovered meta here {:?}", m),
+                m => panic!("uncovered meta here {m:?}"),
             }
         }
     }
